@@ -66,6 +66,7 @@ vec4 lightPositions[] = {
 
 //Corridor Controls
 bool canUpdateCorridor = true;
+int corridorVariant = 0;
 
 SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f)
 {
@@ -271,17 +272,13 @@ void SceneBasic_Uniform::update( float t )
             front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
             cameraFront = glm::normalize(front);
 
-            posDoorHeight = -0.5f;
-
-            canUpdateCorridor = false;
+            ResetCorridor();
         }
         else if (cameraPosition.z <= -14.0f && positionBefore.z > -14.0f)
         {
             cameraPosition.z += 28.0f;
 
-            negDoorHeight = -0.5f;
-
-            canUpdateCorridor = false;
+            ResetCorridor();
         }
     }
 
@@ -525,7 +522,27 @@ void SceneBasic_Uniform::render()
 
     //Toys Found
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, found5Poster);
+    switch (corridorVariant)
+    {
+    case 0:
+        glBindTexture(GL_TEXTURE_2D, found0Poster);
+        break;
+    case 1:
+        glBindTexture(GL_TEXTURE_2D, found1Poster);
+        break;
+    case 2:
+        glBindTexture(GL_TEXTURE_2D, found2Poster);
+        break;
+    case 3:
+        glBindTexture(GL_TEXTURE_2D, found3Poster);
+        break;
+    case 4:
+        glBindTexture(GL_TEXTURE_2D, found4Poster);
+        break;
+    case 5:
+        glBindTexture(GL_TEXTURE_2D, found5Poster);
+        break;
+    }
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
@@ -549,6 +566,21 @@ void SceneBasic_Uniform::setMatrices()
     prog.setUniform("ModelViewMatrix", mv);
     prog.setUniform("NormalMatrix", mat3(mv));
     prog.setUniform("MVP", projection * mv);
+}
+
+void SceneBasic_Uniform::ResetCorridor() 
+{
+    canUpdateCorridor = false;
+    negDoorHeight = -0.5f;
+    posDoorHeight = -0.5f;
+    shipHeight = -10.0f;
+
+    if (rand() % 2 == 0) {
+        corridorVariant = 0;
+    }
+    else {
+        corridorVariant = rand() % 5 + 1;
+    }
 }
 
 void SceneBasic_Uniform::mouse_callback(GLFWwindow* window, double xpos, double ypos)

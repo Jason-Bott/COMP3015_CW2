@@ -49,6 +49,7 @@ private:
     GLuint spaceshipNormal;
 
     GLSLProgram prog;
+    void ResetCorridor();
     void setMatrices();
     void compile();
     static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
