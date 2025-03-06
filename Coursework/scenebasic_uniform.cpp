@@ -56,40 +56,16 @@ bool shipRising = false;
 bool collide = true;
 bool kPressed = false;
 
-//Toys
-bool ePressed = false;
-
-vec3 toyPositions[] = {
-    vec3(-2.5f, -0.4f, 7.3f),
-    vec3(1.3f, -1.9f, 17.5f),
-    vec3(1.92f, 0.0f, -0.3f),
-    vec3(-1.8f, -1.85f, -13.7f),
-    vec3(1.75f, 1.4f, -10.9f)
+//Lights
+vec4 lightPositions[] = {
+    vec4(0.0f, 0.0f, -35.0f, 1.0f),
+    vec4(0.0f, 0.0f, 35.0f, 1.0f),
+    vec4(0.0f, 0.0f, -35.0f, 1.0f),
+    vec4(0.0f, 0.0f, 35.0f, 1.0f)
 };
 
-float toyRotations[] = {
-    135.0f,
-    225.0f,
-    90.0f,
-    -60.0f,
-    -90.0f
-};
-
-vec3 toyRotationDirections[] = {
-    vec3(0.0f, 1.0f, 0.0f),
-    vec3(0.0f, 1.0f, 0.0f),
-    vec3(0.0f, 0.0f, 1.0f),
-    vec3(0.0f, 0.0f, 1.0f),
-    vec3(1.0f, 0.0f, 0.0f)
-};
-
-bool foundToy[] = {
-    false,
-    false,
-    false,
-    false,
-    false
-};
+//Corridor Controls
+bool canUpdateCorridor = true;
 
 SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f)
 {
@@ -143,43 +119,42 @@ void SceneBasic_Uniform::initScene()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
 
-    //Spot lights
-    vec4 lightPositions[] = {
-    vec4(-2.0f, 2.0f, -10.0f, 1.0f),
-    vec4(2.0f, 2.0f, -10.0f, 1.0f),
-    vec4(-2.0f, -2.0f, -10.0f, 1.0f),
-    vec4(2.0f, -2.0f, -10.0f, 1.0f)
-    };
-
-    vec4 lightDirections[] = {
-        normalize(vec4(0.0f, -1.0f,  1.0f, 0.0f)),
-        normalize(vec4(0.0f, -1.0f,  1.0f, 0.0f)),
-        normalize(vec4(0.0f,  1.0f,  1.0f, 0.0f)),
-        normalize(vec4(0.0f,  1.0f,  1.0f, 0.0f))
-    };
-
+    //Light Positions
     for (int i = 0; i < 4; i++) {
         std::stringstream position;
         position << "lights[" << i << "].Position";
         prog.setUniform(position.str().c_str(), view * lightPositions[i]);
+    }
 
-        std::stringstream direction;
-        direction << "lights[" << i << "].Direction";
-        prog.setUniform(direction.str().c_str(), vec3(view * lightDirections[i]));
+    //Interior Lights
+    for (int i = 0; i < 2; i++) {
+        std::stringstream L;
+        L << "lights[" << i << "].L";
+        prog.setUniform(L.str().c_str(), vec3(0.5f, 0.5f, 0.5f));
 
+        std::stringstream La;
+        La << "lights[" << i << "].La";
+        prog.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
+
+        std::stringstream Brightness;
+        Brightness << "lights[" << i << "].Brightness";
+        prog.setUniform(Brightness.str().c_str(), 0.5f);
+    }
+
+    //Alarm Lights
+    for (int i = 2; i < 4; i++) {
         std::stringstream L;
         L << "lights[" << i << "].L";
         prog.setUniform(L.str().c_str(), vec3(0.8f, 0.0f, 0.0f));
 
         std::stringstream La;
         La << "lights[" << i << "].La";
-        prog.setUniform(La.str().c_str(), vec3(brightness, 0.0f, 0.0f));
-    }
+        prog.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
 
-    //Point light (The Star)
-    prog.setUniform("lights[4].Position", view * vec4(-20.0f, 1.0f, 0.0f, 1.0f));
-    prog.setUniform("lights[4].L", vec3(1.0f, 0.96f, 0.91f));
-    prog.setUniform("lights[4].La", vec3(0.2f, 0.2f, 0.2f));
+        std::stringstream Brightness;
+        Brightness << "lights[" << i << "].Brightness";
+        prog.setUniform(Brightness.str().c_str(), brightness);
+    }
 }
 
 void SceneBasic_Uniform::compile()
@@ -274,6 +249,42 @@ void SceneBasic_Uniform::update( float t )
         }
     }
 
+    //Next Corridor Check
+    if (!canUpdateCorridor)
+    {
+        if (cameraPosition.z < 10.0f) 
+        {
+            canUpdateCorridor = true;
+        }
+    }
+    else
+    {
+        if (cameraPosition.z >= 14.0f && positionBefore.z < 14.0f)
+        {
+            cameraPosition.x *= -1.0f;
+            cameraPosition.z = 14.0f - (cameraPosition.z - 14.0f);
+
+            yaw += 180.0f;
+            glm::vec3 front;
+            front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+            front.y = sin(glm::radians(pitch));
+            front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+            cameraFront = glm::normalize(front);
+
+            posDoorHeight = -0.5f;
+
+            canUpdateCorridor = false;
+        }
+        else if (cameraPosition.z <= -14.0f && positionBefore.z > -14.0f)
+        {
+            cameraPosition.z += 28.0f;
+
+            negDoorHeight = -0.5f;
+
+            canUpdateCorridor = false;
+        }
+    }
+
     //Blastdoor Updates
     float doorSpeed = 4.0f;
 
@@ -319,78 +330,35 @@ void SceneBasic_Uniform::update( float t )
     }
 
     //std::cout << cameraPosition.x << ", " << cameraPosition.z << std::endl;
+    //std::cout << pitch << ", " << yaw << std::endl;
     //Update View
     view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
 
-
-    //Red Lights (Spot Lights)
-    vec4 lightPositions[] = {
-    vec4(-2.0f, 2.0f, -10.0f, 1.0f),
-    vec4(2.0f, 2.0f, -10.0f, 1.0f),
-    vec4(-2.0f, 2.0f, 10.0f, 1.0f),
-    vec4(2.0f, 2.0f, 10.0f, 1.0f)
-    };
-
-    vec4 lightDirections[] = {
-        normalize(vec4(0.0f, -1.0f, 1.0f, 0.0f)),
-        normalize(vec4(0.0f, -1.0f, 1.0f, 0.0f)),
-        normalize(vec4(0.0f, -1.0f, -1.0f, 0.0f)),
-        normalize(vec4(0.0f, -1.0f, -1.0f, 0.0f))
-    };
-
+    //Light Positions
     for (int i = 0; i < 4; i++) {
         std::stringstream position;
         position << "lights[" << i << "].Position";
         prog.setUniform(position.str().c_str(), view * lightPositions[i]);
-
-        std::stringstream direction;
-        direction << "lights[" << i << "].Direction";
-        prog.setUniform(direction.str().c_str(), vec3(view * lightDirections[i]));
     }
 
+    //Alarm Lighting
     if (negative) {
-        brightness -= deltaTime / 10;
-        if (brightness < 0.1f) {
-            brightness = 0.1f;
+        brightness -= deltaTime;
+        if (brightness < 0.0f) {
+            brightness = 0.0f;
             negative = false;
         }
     }
     else {
-        brightness += deltaTime / 10;
-        if (brightness > 0.2f) {
-            brightness = 0.2f;
+        brightness += deltaTime;
+        if (brightness > 1.0f) {
+            brightness = 1.0f;
             negative = true;
         }
     }
 
-    prog.setUniform("lights[0].La", vec3(brightness, 0.0f, 0.0f));
-    prog.setUniform("lights[1].La", vec3(brightness, 0.0f, 0.0f));
-    prog.setUniform("lights[2].La", vec3(brightness, 0.0f, 0.0f));
-    prog.setUniform("lights[3].La", vec3(brightness, 0.0f, 0.0f));
-
-    //Star Light (Point Light)
-    prog.setUniform("lights[4].Position", view * vec4(-20.0f, 0.0f, 0.0f, 1.0f));
-
-    //Check Toy Collection
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && !ePressed)
-    {
-        ePressed = true;
-        for (int i = 0; i < 5; i++) 
-        {
-            if (!foundToy[i]) 
-            {
-                if (cameraPosition.x < toyPositions[i].x + 2.0f && cameraPosition.x > toyPositions[i].x - 2.0f && cameraPosition.z < toyPositions[i].z + 2.0f && cameraPosition.z > toyPositions[i].z - 2.0f) 
-                {
-                    foundToy[i] = true;
-                }
-            }
-        }
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_RELEASE)
-    {
-        ePressed = false;
-    }
+    prog.setUniform("lights[2].Brightness", brightness);
+    prog.setUniform("lights[3].Brightness", brightness);
 }
 
 void SceneBasic_Uniform::render()
@@ -541,28 +509,6 @@ void SceneBasic_Uniform::render()
     spaceship->render();
 
     //
-    //Toy Spaceships
-    //
-    int toysFound = 0;
-
-    for (int i = 0; i < 5; i++) 
-    {
-        if (!foundToy[i]) 
-        {
-            model = mat4(1.0f);
-            model = glm::translate(model, toyPositions[i]);
-            model = glm::scale(model, vec3(0.05f, 0.05f, 0.05f));
-            model = glm::rotate(model, glm::radians(toyRotations[i]), toyRotationDirections[i]);
-            setMatrices();
-            spaceship->render();
-        }
-        else 
-        {
-            toysFound++;
-        }
-    }
-
-    //
     //Posters
     //
 
@@ -579,27 +525,7 @@ void SceneBasic_Uniform::render()
 
     //Toys Found
     glActiveTexture(GL_TEXTURE1);
-    switch (toysFound)
-    {
-        case 0:
-            glBindTexture(GL_TEXTURE_2D, found0Poster);
-            break;
-        case 1:
-            glBindTexture(GL_TEXTURE_2D, found1Poster);
-            break;
-        case 2:
-            glBindTexture(GL_TEXTURE_2D, found2Poster);
-            break;
-        case 3:
-            glBindTexture(GL_TEXTURE_2D, found3Poster);
-            break;
-        case 4:
-            glBindTexture(GL_TEXTURE_2D, found4Poster);
-            break;
-        case 5:
-            glBindTexture(GL_TEXTURE_2D, found5Poster);
-            break;
-    }
+    glBindTexture(GL_TEXTURE_2D, found5Poster);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
