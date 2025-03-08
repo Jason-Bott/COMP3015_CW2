@@ -36,13 +36,9 @@ private:
     GLuint spaceshipTexture;
 
     //Posters
-    GLuint found0Poster;
-    GLuint found1Poster;
-    GLuint found2Poster;
-    GLuint found3Poster;
-    GLuint found4Poster;
-    GLuint found5Poster;
-    GLuint instructionsPoster;
+    GLuint powerPath;
+    GLuint endureTime;
+    GLuint endlessBeyond;
 
     //Normal Maps
     GLuint defaultNormal;

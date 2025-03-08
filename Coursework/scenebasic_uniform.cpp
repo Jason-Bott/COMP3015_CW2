@@ -64,6 +64,13 @@ vec4 lightPositions[] = {
     vec4(0.0f, 0.0f, 35.0f, 1.0f)
 };
 
+//Posters
+vec3 posterPositions[] = {
+    vec3(1.99f, 0.25f, -2.0f),
+    vec3(1.99f, 0.25f, 0.0f),
+    vec3(1.99f, 0.25f, 2.0f)
+};
+
 //Corridor Controls
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
@@ -89,13 +96,9 @@ SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f)
     spaceshipTexture = Texture::loadTexture("media/textures/spaceship/StarSparrow_Red.png");
 
     //Posters
-    found0Poster = Texture::loadTexture("media/textures/posters/found0.png");
-    found1Poster = Texture::loadTexture("media/textures/posters/found1.png");
-    found2Poster = Texture::loadTexture("media/textures/posters/found2.png");
-    found3Poster = Texture::loadTexture("media/textures/posters/found3.png");
-    found4Poster = Texture::loadTexture("media/textures/posters/found4.png");
-    found5Poster = Texture::loadTexture("media/textures/posters/found5.png");
-    instructionsPoster = Texture::loadTexture("media/textures/posters/instructions.png");
+    powerPath = Texture::loadTexture("media/textures/posters/PowerPath.png");
+    endureTime = Texture::loadTexture("media/textures/posters/EndureTime.png");
+    endlessBeyond = Texture::loadTexture("media/textures/posters/EndlessBeyond.png");
 
     //Normal
     defaultNormal = Texture::loadTexture("media/textures/normal.png");
@@ -508,48 +511,31 @@ void SceneBasic_Uniform::render()
     //
     //Posters
     //
-
-    //Instructions
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, instructionsPoster);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, defaultNormal);
-
-    model = mat4(1.0f);
-    model = glm::translate(model, vec3(1.99f, 0.25f, -1.0f));
-    setMatrices();
-    poster->render();
-
-    //Toys Found
-    glActiveTexture(GL_TEXTURE1);
-    switch (corridorVariant)
+    for (int i = 0; i < 3; i++) 
     {
-    case 0:
-        glBindTexture(GL_TEXTURE_2D, found0Poster);
-        break;
-    case 1:
-        glBindTexture(GL_TEXTURE_2D, found1Poster);
-        break;
-    case 2:
-        glBindTexture(GL_TEXTURE_2D, found2Poster);
-        break;
-    case 3:
-        glBindTexture(GL_TEXTURE_2D, found3Poster);
-        break;
-    case 4:
-        glBindTexture(GL_TEXTURE_2D, found4Poster);
-        break;
-    case 5:
-        glBindTexture(GL_TEXTURE_2D, found5Poster);
-        break;
-    }
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, defaultNormal);
+        int textureIndex = (corridorVariant == 1) ? (2 - i) : i;
 
-    model = mat4(1.0f);
-    model = glm::translate(model, vec3(1.99f, 0.25f, 1.0f));
-    setMatrices();
-    poster->render();
+        glActiveTexture(GL_TEXTURE1);
+        switch (textureIndex)
+        {
+            case 0:
+                glBindTexture(GL_TEXTURE_2D, powerPath);
+                break;
+            case 1:
+                glBindTexture(GL_TEXTURE_2D, endureTime);
+                break;
+            case 2:
+                glBindTexture(GL_TEXTURE_2D, endlessBeyond);
+                break;
+        }
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, defaultNormal);
+
+        model = mat4(1.0f);
+        model = glm::translate(model, posterPositions[i]);
+        setMatrices();
+        poster->render();
+    }
 }
 
 void SceneBasic_Uniform::resize(int w, int h)
@@ -579,7 +565,7 @@ void SceneBasic_Uniform::ResetCorridor()
         corridorVariant = 0;
     }
     else {
-        corridorVariant = rand() % 5 + 1;
+        corridorVariant = rand() % 1 + 1;
     }
 }
 
