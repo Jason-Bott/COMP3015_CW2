@@ -1,8 +1,8 @@
 ﻿  scenebasic_uniform.cpp
-C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(576,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(577,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(581,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(578,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(582,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(583,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(583,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(584,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(585,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   Project_Template.vcxproj -> C:\Users\jason\University\COMP3015_CW2\Coursework\x64\Debug\Project_Template.exe

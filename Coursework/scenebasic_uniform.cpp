@@ -66,9 +66,9 @@ vec4 lightPositions[] = {
 
 //Posters
 vec3 posterPositions[] = {
-    vec3(1.99f, 0.25f, -2.0f),
+    vec3(1.99f, 0.25f, -2.5f),
     vec3(1.99f, 0.25f, 0.0f),
-    vec3(1.99f, 0.25f, 2.0f)
+    vec3(1.99f, 0.25f, 2.5f)
 };
 
 //Corridor Controls
@@ -533,6 +533,7 @@ void SceneBasic_Uniform::render()
 
         model = mat4(1.0f);
         model = glm::translate(model, posterPositions[i]);
+        model = glm::scale(model, vec3(2.0f, 2.0f, 2.0f));
         setMatrices();
         poster->render();
     }
