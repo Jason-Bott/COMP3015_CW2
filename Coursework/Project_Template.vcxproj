@@ -147,6 +147,7 @@
   <ItemGroup>
     <ClCompile Include="glad.c" />
     <ClCompile Include="helper\cube.cpp" />
+    <ClCompile Include="helper\frustum.cpp" />
     <ClCompile Include="helper\glslprogram.cpp" />
     <ClCompile Include="helper\glutils.cpp" />
     <ClCompile Include="helper\objmesh.cpp" />
@@ -165,9 +166,11 @@
     <ClInclude Include="helper\aabb.h" />
     <ClInclude Include="helper\cube.h" />
     <ClInclude Include="helper\drawable.h" />
+    <ClInclude Include="helper\frustum.h" />
     <ClInclude Include="helper\glslprogram.h" />
     <ClInclude Include="helper\glutils.h" />
     <ClInclude Include="helper\objmesh.h" />
+    <ClInclude Include="helper\random.h" />
     <ClInclude Include="helper\scene.h" />
     <ClInclude Include="helper\scenerunner.h" />
     <ClInclude Include="helper\skybox.h" />

@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "helper/objmesh.h"
 #include "helper/skybox.h"
+#include "helper/frustum.h"
 
 class SceneBasic_Uniform : public Scene
 {
@@ -44,8 +45,27 @@ private:
     GLuint defaultNormal;
     GLuint spaceshipNormal;
 
+    //Shadows
+    void setupFBO();
+    void spitOutDepthBuffer();
+    GLuint shadowFBO, pass1Index, pass2Index;
+    int shadowMapWidth, shadowMapHeight;
+    glm::mat4 lightPV, shadowBias;
+    glm::vec3 lightPos;
+    glm::mat4 shadowScale;
+    Frustum lightFrustum;
+
+    //Jitter
+    float jitter();
+    void buildJitterTex();
+    int samplesU, samplesV;
+    int jitterMapSize;
+    float radius;
+
     GLSLProgram prog;
+    void DrawScene();
     void ResetCorridor();
+
     void setMatrices();
     void compile();
     static void mouse_callback(GLFWwindow* window, double xpos, double ypos);

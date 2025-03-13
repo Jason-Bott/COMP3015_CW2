@@ -8,6 +8,7 @@ using std::string;
 
 #include <sstream>
 #include <iostream>
+#include <random>
 using std::cerr;
 using std::endl;
 
@@ -39,6 +40,10 @@ float lastY = 600.0f / 2.0;
 float yaw = -90.0f;
 float pitch = 0.0f;
 bool firstMouse = true;
+
+//For Window
+int windowWidth, windowHeight;
+bool resized = false;
 
 //For lighting animation
 float brightness = 0.0f;
@@ -75,7 +80,7 @@ vec3 posterPositions[] = {
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f)
+SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(512), shadowMapHeight(512)
 {
     //Objects
     floor = ObjMesh::load("media/floor.obj", true);
@@ -103,6 +108,12 @@ SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f)
     //Normal
     defaultNormal = Texture::loadTexture("media/textures/normal.png");
     spaceshipNormal = Texture::loadTexture("media/textures/spaceship/StarSparrow_Normal.png");
+
+    //Other
+    samplesU = 4;
+    samplesV = 8;
+    jitterMapSize = 8;
+    radius = 7.0f;
 }
 
 void SceneBasic_Uniform::initScene()
@@ -114,51 +125,88 @@ void SceneBasic_Uniform::initScene()
     view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
     projection = mat4(1.0f);
 
+    //Window Settings
     GLFWwindow* window = glfwGetCurrentContext();
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, SceneBasic_Uniform::mouse_callback);
+
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+
+    windowWidth = mode->width;
+    windowHeight = mode->height;
+
+    //Shadow Setup
+    setupFBO();
+    buildJitterTex();
+
+    GLuint programHandle = prog.getHandle();
+    pass1Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "recordDepth");
+    pass2Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "shadeWithShadow");
+    shadowBias = mat4(
+        vec4(0.5f, 0.0f, 0.0f, 0.0f),
+        vec4(0.0f, 0.5f, 0.0f, 0.0f),
+        vec4(0.0f, 0.0f, 0.5f, 0.0f),
+        vec4(0.5f, 0.5f, 0.5f, 1.0f)
+    );
+
+    vec3 lightPos = vec3(-20.0f, 0.0f, 0.0f);
+    lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+    lightFrustum.setPerspective(50.0f, 1.0f, 1.0f, 25.0f);
+    lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
 
     //Skybox
     GLuint cubeTex = Texture::loadCubeMap("media/skybox/space");
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
 
-    //Light Positions
-    for (int i = 0; i < 4; i++) {
-        std::stringstream position;
-        position << "lights[" << i << "].Position";
-        prog.setUniform(position.str().c_str(), view * lightPositions[i]);
-    }
+    prog.use();
+    prog.setUniform("lights[0].Intensity", vec3(0.85f));
+    prog.setUniform("lights[0].La", vec3(1.0f));
+    prog.setUniform("lights[0].L", vec3(1.0f));
+    prog.setUniform("ShadowMap", 0);
+    prog.setUniform("OffsetTex", 1);
+    prog.setUniform("Radius", radius / 512.0f);
+    prog.setUniform("OffsetTexSize", vec3(jitterMapSize, jitterMapSize, samplesU * samplesV / 2.0f));
 
-    //Interior Lights
-    for (int i = 0; i < 2; i++) {
-        std::stringstream L;
-        L << "lights[" << i << "].L";
-        prog.setUniform(L.str().c_str(), vec3(0.5f, 0.5f, 0.5f));
 
-        std::stringstream La;
-        La << "lights[" << i << "].La";
-        prog.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
+    ////Light Positions
+    //for (int i = 0; i < 4; i++) {
+    //    std::stringstream position;
+    //    position << "lights[" << i << "].Position";
+    //    prog.setUniform(position.str().c_str(), view * lightPositions[i]);
+    //}
 
-        std::stringstream Brightness;
-        Brightness << "lights[" << i << "].Brightness";
-        prog.setUniform(Brightness.str().c_str(), 0.5f);
-    }
+    ////Interior Lights
+    //for (int i = 0; i < 2; i++) {
+    //    std::stringstream L;
+    //    L << "lights[" << i << "].L";
+    //    prog.setUniform(L.str().c_str(), vec3(0.5f, 0.5f, 0.5f));
 
-    //Alarm Lights
-    for (int i = 2; i < 4; i++) {
-        std::stringstream L;
-        L << "lights[" << i << "].L";
-        prog.setUniform(L.str().c_str(), vec3(0.8f, 0.0f, 0.0f));
+    //    std::stringstream La;
+    //    La << "lights[" << i << "].La";
+    //    prog.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
 
-        std::stringstream La;
-        La << "lights[" << i << "].La";
-        prog.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
+    //    std::stringstream Brightness;
+    //    Brightness << "lights[" << i << "].Brightness";
+    //    prog.setUniform(Brightness.str().c_str(), 0.5f);
+    //}
 
-        std::stringstream Brightness;
-        Brightness << "lights[" << i << "].Brightness";
-        prog.setUniform(Brightness.str().c_str(), brightness);
-    }
+    ////Alarm Lights
+    //for (int i = 2; i < 4; i++) {
+    //    std::stringstream L;
+    //    L << "lights[" << i << "].L";
+    //    prog.setUniform(L.str().c_str(), vec3(0.8f, 0.0f, 0.0f));
+
+    //    std::stringstream La;
+    //    La << "lights[" << i << "].La";
+    //    prog.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
+
+    //    std::stringstream Brightness;
+    //    Brightness << "lights[" << i << "].Brightness";
+    //    prog.setUniform(Brightness.str().c_str(), brightness);
+    //}
 }
 
 void SceneBasic_Uniform::compile()
@@ -176,6 +224,12 @@ void SceneBasic_Uniform::compile()
 
 void SceneBasic_Uniform::update( float t )
 {
+    if (!resized) 
+    {
+        resize(width, height);
+        resized = true;
+    }
+
     GLFWwindow* window = glfwGetCurrentContext();
 
     float deltaTime = t - lastFrameTime;
@@ -363,6 +417,39 @@ void SceneBasic_Uniform::update( float t )
 
 void SceneBasic_Uniform::render()
 {
+    //Update Pass
+    prog.use();
+
+    //Pass 1 Shadow Map Gen
+    view = lightFrustum.getViewMatrix();
+    projection = lightFrustum.getProjectionMatrix();
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(2.5f, 10.0f);
+    DrawScene();
+    glCullFace(GL_BACK);
+    glFlush();
+
+    //Pass 2 Render Pass
+    //std::cout << width << height << endl;
+
+    view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
+    projection = glm::perspective(glm::radians(70.0f), (float)windowWidth / windowHeight, 0.3f, 100.0f);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, windowWidth, windowHeight);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass2Index);
+    glDisable(GL_CULL_FACE);
+    DrawScene();
+}
+
+void SceneBasic_Uniform::DrawScene()
+{
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     //
@@ -539,22 +626,6 @@ void SceneBasic_Uniform::render()
     }
 }
 
-void SceneBasic_Uniform::resize(int w, int h)
-{
-    width = w;
-    height = h;
-    glViewport(0,0,w,h);
-    projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 100.0f);
-}
-
-void SceneBasic_Uniform::setMatrices() 
-{
-    mat4 mv = view * model;
-    prog.setUniform("ModelViewMatrix", mv);
-    prog.setUniform("NormalMatrix", mat3(mv));
-    prog.setUniform("MVP", projection * mv);
-}
-
 void SceneBasic_Uniform::ResetCorridor() 
 {
     canUpdateCorridor = false;
@@ -599,4 +670,107 @@ void SceneBasic_Uniform::mouse_callback(GLFWwindow* window, double xpos, double 
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(front);
+}
+
+void SceneBasic_Uniform::resize(int w, int h)
+{
+    width = w;
+    height = h;
+    glViewport(0, 0, w, h);
+    projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 100.0f);
+}
+
+void SceneBasic_Uniform::setMatrices()
+{
+    mat4 mv = view * model;
+    prog.setUniform("ModelViewMatrix", mv);
+    prog.setUniform("NormalMatrix", mat3(mv));
+    prog.setUniform("MVP", projection * mv);
+    prog.setUniform("ShadowMatrix", lightPV * model);
+}
+
+void SceneBasic_Uniform::setupFBO() {
+    GLfloat border[] = { 1.0f, 0.0f, 0.0f, 0.0f };
+    GLuint depthTex;
+
+    glGenTextures(1, &depthTex);
+    glBindTexture(GL_TEXTURE_2D, depthTex);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, shadowMapWidth, shadowMapHeight);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthTex);
+
+    glGenFramebuffers(1, &shadowFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
+
+    GLenum drawBuffers[] = { GL_NONE };
+    glDrawBuffers(1, drawBuffers);
+    GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (result == GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "Framebuffer is complete" << endl;
+    }
+    else {
+        std::cout << "Framebuffer error: " << result << endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void SceneBasic_Uniform::buildJitterTex()
+{
+    int size = jitterMapSize;
+    int samples = samplesU * samplesV;
+    int bufSize = size * size * samples * 2;
+    float* data = new float[bufSize];
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            for (int k = 0; k < samples; k += 2) {
+                int x1, y1, x2, y2;
+                x1 = k % (samplesU);
+                y1 = (samples - 1 - k) / samplesU;
+                x2 = (k + 1) % samplesU;
+                y2 = (samples - 1 - k - 1) / samplesU;
+                vec4 v;
+                // Center on grid and jitter
+                v.x = (x1 + 0.5f) + jitter();
+                v.y = (y1 + 0.5f) + jitter();
+                v.z = (x2 + 0.5f) + jitter();
+                v.w = (y2 + 0.5f) + jitter();
+                // Scale between 0 and 1
+                v.x /= samplesU;
+                v.y /= samplesV;
+                v.z /= samplesU;
+                v.w /= samplesV;
+                // Warp to disk
+                int cell = ((k / 2) * size * size + j * size + i) * 4;
+                data[cell + 0] = sqrtf(v.y) * cosf(glm::two_pi<float>() * v.x);
+                data[cell + 1] = sqrtf(v.y) * sinf(glm::two_pi<float>() * v.x);
+                data[cell + 2] = sqrtf(v.w) * cosf(glm::two_pi<float>() * v.z);
+                data[cell + 3] = sqrtf(v.w) * sinf(glm::two_pi<float>() * v.z);
+            }
+        }
+    }
+    glActiveTexture(GL_TEXTURE1);
+    GLuint texID;
+    glGenTextures(1, &texID);
+    glBindTexture(GL_TEXTURE_3D, texID);
+    glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA32F, size, size, samples / 2);
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, size, size, samples / 2, GL_RGBA, GL_FLOAT, data);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    delete[] data;
+}
+
+float SceneBasic_Uniform::jitter() {
+    static std::default_random_engine generator;
+    static std::uniform_real_distribution<float> distrib(-0.5f, 0.5f);
+    return distrib(generator);
 }

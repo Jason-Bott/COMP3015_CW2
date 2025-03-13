@@ -60,6 +60,9 @@
     <ClCompile Include="helper\cube.cpp">
       <Filter>helper</Filter>
     </ClCompile>
+    <ClCompile Include="helper\frustum.cpp">
+      <Filter>helper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\basic_uniform.frag">
@@ -113,6 +116,12 @@
       <Filter>helper</Filter>
     </ClInclude>
     <ClInclude Include="helper\cube.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\frustum.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\random.h">
       <Filter>helper</Filter>
     </ClInclude>
   </ItemGroup>
