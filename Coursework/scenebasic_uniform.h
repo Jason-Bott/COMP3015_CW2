@@ -47,8 +47,7 @@ private:
 
     //Shadows
     void setupFBO();
-    void spitOutDepthBuffer();
-    GLuint shadowFBO, pass1Index, pass2Index;
+    GLuint shadowMap, shadowFBO, pass1Index, pass2Index;
     int shadowMapWidth, shadowMapHeight;
     glm::mat4 lightPV, shadowBias;
     glm::vec3 lightPos;
@@ -62,7 +61,16 @@ private:
     int jitterMapSize;
     float radius;
 
-    GLSLProgram prog;
+    //Shaders
+    GLSLProgram shadowProg;
+    GLSLProgram skyboxProg;
+    GLSLProgram objectProg;
+
+    void renderShadow();
+    void renderSkybox();
+    void renderObjects();
+
+
     void DrawScene();
     void ResetCorridor();
 

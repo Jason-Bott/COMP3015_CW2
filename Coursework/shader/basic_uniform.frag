@@ -14,7 +14,6 @@ uniform vec3 OffsetTexSize;
 
 layout (location = 0) out vec4 FragColor;
 
-layout (binding = 0) uniform samplerCube SkyBoxTex;
 layout (binding = 1) uniform sampler2D TexColor;
 layout (binding = 2) uniform sampler2D NormalMap;
 
@@ -100,16 +99,4 @@ void recordDepth() {
 
 void main() {
     RenderPass();
-    
-    //vec3 texColor = texture(SkyBoxTex, normalize(SkyBoxVec)).rgb;
-    //vec3 Color = vec3(0.0);
-
-    //for (int i = 0; i < 4; i++) {
-        //Color += blinnPhong(i, Position, Normal) * lights[i].Brightness;
-    //}
-
-    //float Gamma = 2.2f;
-    //bool isSky = length(Position) > 30.0;
-    //vec3 finalColor = isSky ? texColor : pow(Color, vec3(1.0/Gamma));
-    //FragColor = vec4(finalColor, 1.0);
 }

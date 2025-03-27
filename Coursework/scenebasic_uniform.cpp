@@ -123,7 +123,7 @@ void SceneBasic_Uniform::initScene()
 
     model = mat4(1.0f);
     view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
-    projection = mat4(1.0f);
+    projection = glm::perspective(glm::radians(70.0f), (float)width / height, 0.3f, 100.0f);
 
     //Window Settings
     GLFWwindow* window = glfwGetCurrentContext();
@@ -137,11 +137,16 @@ void SceneBasic_Uniform::initScene()
     windowWidth = mode->width;
     windowHeight = mode->height;
 
+    //Skybox
+    GLuint cubeTex = Texture::loadCubeMap("media/skybox/space");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
+
     //Shadow Setup
     setupFBO();
-    buildJitterTex();
+    //buildJitterTex();
 
-    GLuint programHandle = prog.getHandle();
+    GLuint programHandle = shadowProg.getHandle();
     pass1Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "recordDepth");
     pass2Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "shadeWithShadow");
     shadowBias = mat4(
@@ -156,75 +161,81 @@ void SceneBasic_Uniform::initScene()
     lightFrustum.setPerspective(50.0f, 1.0f, 1.0f, 25.0f);
     lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
 
-    //Skybox
-    GLuint cubeTex = Texture::loadCubeMap("media/skybox/space");
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
-
-    prog.use();
-    prog.setUniform("lights[0].Intensity", vec3(0.85f));
-    prog.setUniform("lights[0].La", vec3(1.0f));
-    prog.setUniform("lights[0].L", vec3(1.0f));
-    prog.setUniform("ShadowMap", 0);
-    prog.setUniform("OffsetTex", 1);
-    prog.setUniform("Radius", radius / 512.0f);
-    prog.setUniform("OffsetTexSize", vec3(jitterMapSize, jitterMapSize, samplesU * samplesV / 2.0f));
+    shadowProg.use();
+    shadowProg.setUniform("lights[0].Intensity", 0.0f);
+    shadowProg.setUniform("lights[0].La", vec3(1.0f));
+    shadowProg.setUniform("lights[0].L", vec3(1.0f));
+    shadowProg.setUniform("ShadowMap", 0);
+    shadowProg.setUniform("OffsetTex", 1);
+    shadowProg.setUniform("Radius", radius / 512.0f);
+    shadowProg.setUniform("OffsetTexSize", vec3(jitterMapSize, jitterMapSize, samplesU * samplesV / 2.0f));
 
 
     ////Light Positions
     //for (int i = 0; i < 4; i++) {
     //    std::stringstream position;
     //    position << "lights[" << i << "].Position";
-    //    prog.setUniform(position.str().c_str(), view * lightPositions[i]);
+    //    shadowProg.setUniform(position.str().c_str(), view * lightPositions[i]);
     //}
 
     ////Interior Lights
     //for (int i = 0; i < 2; i++) {
     //    std::stringstream L;
     //    L << "lights[" << i << "].L";
-    //    prog.setUniform(L.str().c_str(), vec3(0.5f, 0.5f, 0.5f));
+    //    shadowProg.setUniform(L.str().c_str(), vec3(0.5f, 0.5f, 0.5f));
 
     //    std::stringstream La;
     //    La << "lights[" << i << "].La";
-    //    prog.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
+    //    shadowProg.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
 
     //    std::stringstream Brightness;
     //    Brightness << "lights[" << i << "].Brightness";
-    //    prog.setUniform(Brightness.str().c_str(), 0.5f);
+    //    shadowProg.setUniform(Brightness.str().c_str(), 0.5f);
     //}
 
     ////Alarm Lights
     //for (int i = 2; i < 4; i++) {
     //    std::stringstream L;
     //    L << "lights[" << i << "].L";
-    //    prog.setUniform(L.str().c_str(), vec3(0.8f, 0.0f, 0.0f));
+    //    shadowProg.setUniform(L.str().c_str(), vec3(0.8f, 0.0f, 0.0f));
 
     //    std::stringstream La;
     //    La << "lights[" << i << "].La";
-    //    prog.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
+    //    shadowProg.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
 
     //    std::stringstream Brightness;
     //    Brightness << "lights[" << i << "].Brightness";
-    //    prog.setUniform(Brightness.str().c_str(), brightness);
+    //    shadowProg.setUniform(Brightness.str().c_str(), brightness);
     //}
 }
 
 void SceneBasic_Uniform::compile()
 {
-	try {
-		prog.compileShader("shader/basic_uniform.vert");
-		prog.compileShader("shader/basic_uniform.frag");
-		prog.link();
-		prog.use();
-	} catch (GLSLProgramException &e) {
-		cerr << e.what() << endl;
-		exit(EXIT_FAILURE);
-	}
+    try {
+        shadowProg.compileShader("shader/basic_uniform.vert");
+        shadowProg.compileShader("shader/basic_uniform.frag");
+        shadowProg.link();
+        shadowProg.use();
+
+        skyboxProg.compileShader("shader/skybox.vert");
+        skyboxProg.compileShader("shader/skybox.frag");
+        skyboxProg.link();
+        skyboxProg.use();
+
+        objectProg.compileShader("shader/object.vert");
+        objectProg.compileShader("shader/object.frag");
+        objectProg.link();
+        objectProg.use();
+    }
+    catch (GLSLProgramException& e) {
+        cerr << e.what() << endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
-void SceneBasic_Uniform::update( float t )
+void SceneBasic_Uniform::update(float t)
 {
-    if (!resized) 
+    if (!resized)
     {
         resize(width, height);
         resized = true;
@@ -271,12 +282,12 @@ void SceneBasic_Uniform::update( float t )
         kPressed = true;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE) 
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE)
     {
         kPressed = false;
     }
 
-    if (collide) 
+    if (collide)
     {
         //Wall Collision Check
         if (x < -1.5f) {
@@ -310,7 +321,7 @@ void SceneBasic_Uniform::update( float t )
     //Next Corridor Check
     if (!canUpdateCorridor)
     {
-        if (cameraPosition.z < 10.0f) 
+        if (cameraPosition.z < 10.0f)
         {
             canUpdateCorridor = true;
         }
@@ -392,7 +403,7 @@ void SceneBasic_Uniform::update( float t )
     for (int i = 0; i < 4; i++) {
         std::stringstream position;
         position << "lights[" << i << "].Position";
-        prog.setUniform(position.str().c_str(), view * lightPositions[i]);
+        shadowProg.setUniform(position.str().c_str(), view * lightPositions[i]);
     }
 
     //Alarm Lighting
@@ -411,14 +422,22 @@ void SceneBasic_Uniform::update( float t )
         }
     }
 
-    prog.setUniform("lights[2].Brightness", brightness);
-    prog.setUniform("lights[3].Brightness", brightness);
+    shadowProg.setUniform("lights[2].Brightness", brightness);
+    shadowProg.setUniform("lights[3].Brightness", brightness);
 }
 
 void SceneBasic_Uniform::render()
 {
+    //
+    //Skybox
+    //
+    skyboxProg.use();
+    model = mat4(1.0f);
+    skyboxProg.setUniform("MVP", model * view * projection);
+    sky.render();
+
     //Update Pass
-    prog.use();
+    shadowProg.use();
 
     //Pass 1 Shadow Map Gen
     view = lightFrustum.getViewMatrix();
@@ -450,19 +469,13 @@ void SceneBasic_Uniform::render()
 
 void SceneBasic_Uniform::DrawScene()
 {
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //
-    //Skybox
-    //
-    model = mat4(1.0f);
-    setMatrices();
-    sky.render();
-
-    prog.setUniform("Material.Kd", vec3(0.4f, 0.4f, 0.4f));
-    prog.setUniform("Material.Ka", vec3(0.5f, 0.5f, 0.5f));
-    prog.setUniform("Material.Ks", vec3(0.2f, 0.2f, 0.2f));
-    prog.setUniform("Material.Shininess", 80.0f);
+    shadowProg.use();
+    shadowProg.setUniform("Material.Kd", vec3(0.4f, 0.4f, 0.4f));
+    shadowProg.setUniform("Material.Ka", vec3(0.5f, 0.5f, 0.5f));
+    shadowProg.setUniform("Material.Ks", vec3(0.2f, 0.2f, 0.2f));
+    shadowProg.setUniform("Material.Shininess", 80.0f);
 
     //
     //Floor
@@ -476,7 +489,7 @@ void SceneBasic_Uniform::DrawScene()
     model = glm::translate(model, vec3(0.0f, -2.0f, 0.0f));
     setMatrices();
     floor->render();
-    
+
     //
     //Window Wall
     //
@@ -598,22 +611,22 @@ void SceneBasic_Uniform::DrawScene()
     //
     //Posters
     //
-    for (int i = 0; i < 3; i++) 
+    for (int i = 0; i < 3; i++)
     {
         int textureIndex = (corridorVariant == 1) ? (2 - i) : i;
 
         glActiveTexture(GL_TEXTURE1);
         switch (textureIndex)
         {
-            case 0:
-                glBindTexture(GL_TEXTURE_2D, powerPath);
-                break;
-            case 1:
-                glBindTexture(GL_TEXTURE_2D, endureTime);
-                break;
-            case 2:
-                glBindTexture(GL_TEXTURE_2D, endlessBeyond);
-                break;
+        case 0:
+            glBindTexture(GL_TEXTURE_2D, powerPath);
+            break;
+        case 1:
+            glBindTexture(GL_TEXTURE_2D, endureTime);
+            break;
+        case 2:
+            glBindTexture(GL_TEXTURE_2D, endlessBeyond);
+            break;
         }
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, defaultNormal);
@@ -626,7 +639,7 @@ void SceneBasic_Uniform::DrawScene()
     }
 }
 
-void SceneBasic_Uniform::ResetCorridor() 
+void SceneBasic_Uniform::ResetCorridor()
 {
     canUpdateCorridor = false;
     negDoorHeight = -0.5f;
@@ -639,6 +652,15 @@ void SceneBasic_Uniform::ResetCorridor()
     else {
         corridorVariant = rand() % 1 + 1;
     }
+}
+
+void SceneBasic_Uniform::setMatrices()
+{
+    mat4 mv = view * model;
+    shadowProg.setUniform("ModelViewMatrix", mv);
+    shadowProg.setUniform("NormalMatrix", mat3(mv));
+    shadowProg.setUniform("MVP", projection * mv);
+    shadowProg.setUniform("ShadowMatrix", lightPV * model);
 }
 
 void SceneBasic_Uniform::mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -678,15 +700,6 @@ void SceneBasic_Uniform::resize(int w, int h)
     height = h;
     glViewport(0, 0, w, h);
     projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 100.0f);
-}
-
-void SceneBasic_Uniform::setMatrices()
-{
-    mat4 mv = view * model;
-    prog.setUniform("ModelViewMatrix", mv);
-    prog.setUniform("NormalMatrix", mat3(mv));
-    prog.setUniform("MVP", projection * mv);
-    prog.setUniform("ShadowMatrix", lightPV * model);
 }
 
 void SceneBasic_Uniform::setupFBO() {

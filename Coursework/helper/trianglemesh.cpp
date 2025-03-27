@@ -1,4 +1,5 @@
 #include "trianglemesh.h"
+#include <iostream>
 
 void TriangleMesh::initBuffers(
         std::vector<GLuint> * indices,

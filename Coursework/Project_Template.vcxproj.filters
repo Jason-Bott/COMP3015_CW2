@@ -71,6 +71,24 @@
     <None Include="shader\basic_uniform.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shader\object.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\object.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\shadow.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\shadow.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\skybox.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\skybox.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helper\scene.h">
