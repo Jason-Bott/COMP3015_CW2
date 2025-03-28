@@ -80,7 +80,7 @@ vec3 posterPositions[] = {
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(512), shadowMapHeight(512)
+SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f)
 {
     //Objects
     floor = ObjMesh::load("media/floor.obj", true);
@@ -104,16 +104,6 @@ SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWi
     powerPath = Texture::loadTexture("media/textures/posters/PowerPath.png");
     endureTime = Texture::loadTexture("media/textures/posters/EndureTime.png");
     endlessBeyond = Texture::loadTexture("media/textures/posters/EndlessBeyond.png");
-
-    //Normal
-    defaultNormal = Texture::loadTexture("media/textures/normal.png");
-    spaceshipNormal = Texture::loadTexture("media/textures/spaceship/StarSparrow_Normal.png");
-
-    //Other
-    samplesU = 4;
-    samplesV = 8;
-    jitterMapSize = 8;
-    radius = 7.0f;
 }
 
 void SceneBasic_Uniform::initScene()
@@ -123,7 +113,7 @@ void SceneBasic_Uniform::initScene()
 
     model = mat4(1.0f);
     view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
-    projection = glm::perspective(glm::radians(70.0f), (float)width / height, 0.3f, 100.0f);
+    projection = mat4(1.0f);
 
     //Window Settings
     GLFWwindow* window = glfwGetCurrentContext();
@@ -142,81 +132,28 @@ void SceneBasic_Uniform::initScene()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
 
-    //Shadow Setup
-    setupFBO();
-    //buildJitterTex();
+    for (int i = 0; i < 4; i++) {
+        std::stringstream position;
+        position << "lights[" << i << "].Position";
+        objectProg.setUniform(position.str().c_str(), view * lightPositions[i]);
 
-    GLuint programHandle = shadowProg.getHandle();
-    pass1Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "recordDepth");
-    pass2Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "shadeWithShadow");
-    shadowBias = mat4(
-        vec4(0.5f, 0.0f, 0.0f, 0.0f),
-        vec4(0.0f, 0.5f, 0.0f, 0.0f),
-        vec4(0.0f, 0.0f, 0.5f, 0.0f),
-        vec4(0.5f, 0.5f, 0.5f, 1.0f)
-    );
+        std::stringstream L;
+        L << "lights[" << i << "].L";
+        objectProg.setUniform(L.str().c_str(), vec3(0.8f, 0.0f, 0.0f));
 
-    vec3 lightPos = vec3(-20.0f, 0.0f, 0.0f);
-    lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
-    lightFrustum.setPerspective(50.0f, 1.0f, 1.0f, 25.0f);
-    lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
+        std::stringstream La;
+        La << "lights[" << i << "].La";
+        objectProg.setUniform(La.str().c_str(), vec3(0.8f, 0.0f, 0.0f));
 
-    shadowProg.use();
-    shadowProg.setUniform("lights[0].Intensity", 0.0f);
-    shadowProg.setUniform("lights[0].La", vec3(1.0f));
-    shadowProg.setUniform("lights[0].L", vec3(1.0f));
-    shadowProg.setUniform("ShadowMap", 0);
-    shadowProg.setUniform("OffsetTex", 1);
-    shadowProg.setUniform("Radius", radius / 512.0f);
-    shadowProg.setUniform("OffsetTexSize", vec3(jitterMapSize, jitterMapSize, samplesU * samplesV / 2.0f));
-
-
-    ////Light Positions
-    //for (int i = 0; i < 4; i++) {
-    //    std::stringstream position;
-    //    position << "lights[" << i << "].Position";
-    //    shadowProg.setUniform(position.str().c_str(), view * lightPositions[i]);
-    //}
-
-    ////Interior Lights
-    //for (int i = 0; i < 2; i++) {
-    //    std::stringstream L;
-    //    L << "lights[" << i << "].L";
-    //    shadowProg.setUniform(L.str().c_str(), vec3(0.5f, 0.5f, 0.5f));
-
-    //    std::stringstream La;
-    //    La << "lights[" << i << "].La";
-    //    shadowProg.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
-
-    //    std::stringstream Brightness;
-    //    Brightness << "lights[" << i << "].Brightness";
-    //    shadowProg.setUniform(Brightness.str().c_str(), 0.5f);
-    //}
-
-    ////Alarm Lights
-    //for (int i = 2; i < 4; i++) {
-    //    std::stringstream L;
-    //    L << "lights[" << i << "].L";
-    //    shadowProg.setUniform(L.str().c_str(), vec3(0.8f, 0.0f, 0.0f));
-
-    //    std::stringstream La;
-    //    La << "lights[" << i << "].La";
-    //    shadowProg.setUniform(La.str().c_str(), vec3(0.0f, 0.0f, 0.0f));
-
-    //    std::stringstream Brightness;
-    //    Brightness << "lights[" << i << "].Brightness";
-    //    shadowProg.setUniform(Brightness.str().c_str(), brightness);
-    //}
+        std::stringstream Intensity;
+        Intensity << "lights[" << i << "].Intensity";
+        objectProg.setUniform(Intensity.str().c_str(), 0.2f);
+    }
 }
 
 void SceneBasic_Uniform::compile()
 {
     try {
-        shadowProg.compileShader("shader/basic_uniform.vert");
-        shadowProg.compileShader("shader/basic_uniform.frag");
-        shadowProg.link();
-        shadowProg.use();
-
         skyboxProg.compileShader("shader/skybox.vert");
         skyboxProg.compileShader("shader/skybox.frag");
         skyboxProg.link();
@@ -237,7 +174,7 @@ void SceneBasic_Uniform::update(float t)
 {
     if (!resized)
     {
-        resize(width, height);
+        resize(windowWidth, windowHeight);
         resized = true;
     }
 
@@ -403,12 +340,12 @@ void SceneBasic_Uniform::update(float t)
     for (int i = 0; i < 4; i++) {
         std::stringstream position;
         position << "lights[" << i << "].Position";
-        shadowProg.setUniform(position.str().c_str(), view * lightPositions[i]);
+        objectProg.setUniform(position.str().c_str(), view * lightPositions[i]);
     }
 
     //Alarm Lighting
     if (negative) {
-        brightness -= deltaTime;
+        brightness -= deltaTime / 10;
         if (brightness < 0.0f) {
             brightness = 0.0f;
             negative = false;
@@ -416,78 +353,52 @@ void SceneBasic_Uniform::update(float t)
     }
     else {
         brightness += deltaTime;
-        if (brightness > 1.0f) {
-            brightness = 1.0f;
+        if (brightness > 0.2f) {
+            brightness = 0.2f;
             negative = true;
         }
     }
 
-    shadowProg.setUniform("lights[2].Brightness", brightness);
-    shadowProg.setUniform("lights[3].Brightness", brightness);
+    objectProg.setUniform("lights[2].Intensity", brightness);
+    objectProg.setUniform("lights[3].Intensity", brightness);
 }
 
 void SceneBasic_Uniform::render()
 {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     //
     //Skybox
     //
     skyboxProg.use();
     model = mat4(1.0f);
-    skyboxProg.setUniform("MVP", model * view * projection);
+    setMatrices(skyboxProg);
     sky.render();
 
-    //Update Pass
-    shadowProg.use();
-
-    //Pass 1 Shadow Map Gen
-    view = lightFrustum.getViewMatrix();
-    projection = lightFrustum.getProjectionMatrix();
-    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glViewport(0, 0, shadowMapWidth, shadowMapHeight);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(2.5f, 10.0f);
-    DrawScene();
-    glCullFace(GL_BACK);
-    glFlush();
-
-    //Pass 2 Render Pass
-    //std::cout << width << height << endl;
-
-    view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
-    projection = glm::perspective(glm::radians(70.0f), (float)windowWidth / windowHeight, 0.3f, 100.0f);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glViewport(0, 0, windowWidth, windowHeight);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass2Index);
-    glDisable(GL_CULL_FACE);
-    DrawScene();
+    //
+    //Objects
+    //
+    objectProg.use();
+    DrawScene(objectProg);
 }
 
-void SceneBasic_Uniform::DrawScene()
+void SceneBasic_Uniform::DrawScene(GLSLProgram& prog)
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    shadowProg.use();
-    shadowProg.setUniform("Material.Kd", vec3(0.4f, 0.4f, 0.4f));
-    shadowProg.setUniform("Material.Ka", vec3(0.5f, 0.5f, 0.5f));
-    shadowProg.setUniform("Material.Ks", vec3(0.2f, 0.2f, 0.2f));
-    shadowProg.setUniform("Material.Shininess", 80.0f);
+    prog.use();
+    prog.setUniform("Material.Kd", vec3(0.4f, 0.4f, 0.4f));
+    prog.setUniform("Material.Ka", vec3(0.5f, 0.5f, 0.5f));
+    prog.setUniform("Material.Ks", vec3(0.2f, 0.2f, 0.2f));
+    prog.setUniform("Material.Shininess", 80.0f);
 
     //
     //Floor
     //
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, floorTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, -2.0f, 0.0f));
-    setMatrices();
+    setMatrices(prog);
     floor->render();
 
     //
@@ -495,12 +406,10 @@ void SceneBasic_Uniform::DrawScene()
     //
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, wallTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(-2.2f, 0.0f, 0.0f));
-    setMatrices();
+    setMatrices(prog);
     windowWall->render();
 
     //
@@ -508,12 +417,10 @@ void SceneBasic_Uniform::DrawScene()
     //
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, wallTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(2.0f, 0.0f, 0.0f));
-    setMatrices();
+    setMatrices(prog);
     wall->render();
 
     //
@@ -521,12 +428,10 @@ void SceneBasic_Uniform::DrawScene()
     //
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, ceilingTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, 2.0f, 0.0f));
-    setMatrices();
+    setMatrices(prog);
     ceiling->render();
 
     //
@@ -534,31 +439,29 @@ void SceneBasic_Uniform::DrawScene()
     //
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, doorframeTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
     //Inner Neg
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, 0.0f, -10.0f));
-    setMatrices();
+    setMatrices(prog);
     doorframe->render();
 
     //Inner Pos
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, 0.0f, 10.0f));
-    setMatrices();
+    setMatrices(prog);
     doorframe->render();
 
     //Outer Neg
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, 0.0f, -18.0f));
-    setMatrices();
+    setMatrices(prog);
     doorframe->render();
 
     //Outer Pos
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, 0.0f, 18.0f));
-    setMatrices();
+    setMatrices(prog);
     doorframe->render();
 
     //
@@ -566,31 +469,29 @@ void SceneBasic_Uniform::DrawScene()
     //
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, blastdoorTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
     //Inner Neg
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, negDoorHeight, -10.0f));
-    setMatrices();
+    setMatrices(prog);
     blastdoor->render();
 
     //Inner Pos
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, posDoorHeight, 10.0f));
-    setMatrices();
+    setMatrices(prog);
     blastdoor->render();
 
     //Outer Neg
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, -0.5f, -18.0f));
-    setMatrices();
+    setMatrices(prog);
     blastdoor->render();
 
     //Outer Pos
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, -0.5f, 18.0f));
-    setMatrices();
+    setMatrices(prog);
     blastdoor->render();
 
     //
@@ -598,14 +499,12 @@ void SceneBasic_Uniform::DrawScene()
     //
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, spaceshipTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, spaceshipNormal);
 
     model = mat4(1.0f);
     model = glm::scale(model, vec3(0.5f, 0.5f, 0.5f));
     model = glm::rotate(model, glm::radians(90.0f), vec3(0.0f, 1.0f, 0.0f));
     model = glm::translate(model, vec3(0.0f, shipHeight, -30.0f));
-    setMatrices();
+    setMatrices(prog);
     spaceship->render();
 
     //
@@ -628,13 +527,11 @@ void SceneBasic_Uniform::DrawScene()
             glBindTexture(GL_TEXTURE_2D, endlessBeyond);
             break;
         }
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, defaultNormal);
 
         model = mat4(1.0f);
         model = glm::translate(model, posterPositions[i]);
         model = glm::scale(model, vec3(2.0f, 2.0f, 2.0f));
-        setMatrices();
+        setMatrices(prog);
         poster->render();
     }
 }
@@ -654,13 +551,12 @@ void SceneBasic_Uniform::ResetCorridor()
     }
 }
 
-void SceneBasic_Uniform::setMatrices()
+void SceneBasic_Uniform::setMatrices(GLSLProgram& prog)
 {
     mat4 mv = view * model;
-    shadowProg.setUniform("ModelViewMatrix", mv);
-    shadowProg.setUniform("NormalMatrix", mat3(mv));
-    shadowProg.setUniform("MVP", projection * mv);
-    shadowProg.setUniform("ShadowMatrix", lightPV * model);
+    prog.setUniform("ModelViewMatrix", mv);
+    prog.setUniform("NormalMatrix", mat3(mv));
+    prog.setUniform("MVP", projection * mv);
 }
 
 void SceneBasic_Uniform::mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -700,90 +596,4 @@ void SceneBasic_Uniform::resize(int w, int h)
     height = h;
     glViewport(0, 0, w, h);
     projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 100.0f);
-}
-
-void SceneBasic_Uniform::setupFBO() {
-    GLfloat border[] = { 1.0f, 0.0f, 0.0f, 0.0f };
-    GLuint depthTex;
-
-    glGenTextures(1, &depthTex);
-    glBindTexture(GL_TEXTURE_2D, depthTex);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, shadowMapWidth, shadowMapHeight);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, depthTex);
-
-    glGenFramebuffers(1, &shadowFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
-
-    GLenum drawBuffers[] = { GL_NONE };
-    glDrawBuffers(1, drawBuffers);
-    GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (result == GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "Framebuffer is complete" << endl;
-    }
-    else {
-        std::cout << "Framebuffer error: " << result << endl;
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void SceneBasic_Uniform::buildJitterTex()
-{
-    int size = jitterMapSize;
-    int samples = samplesU * samplesV;
-    int bufSize = size * size * samples * 2;
-    float* data = new float[bufSize];
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            for (int k = 0; k < samples; k += 2) {
-                int x1, y1, x2, y2;
-                x1 = k % (samplesU);
-                y1 = (samples - 1 - k) / samplesU;
-                x2 = (k + 1) % samplesU;
-                y2 = (samples - 1 - k - 1) / samplesU;
-                vec4 v;
-                // Center on grid and jitter
-                v.x = (x1 + 0.5f) + jitter();
-                v.y = (y1 + 0.5f) + jitter();
-                v.z = (x2 + 0.5f) + jitter();
-                v.w = (y2 + 0.5f) + jitter();
-                // Scale between 0 and 1
-                v.x /= samplesU;
-                v.y /= samplesV;
-                v.z /= samplesU;
-                v.w /= samplesV;
-                // Warp to disk
-                int cell = ((k / 2) * size * size + j * size + i) * 4;
-                data[cell + 0] = sqrtf(v.y) * cosf(glm::two_pi<float>() * v.x);
-                data[cell + 1] = sqrtf(v.y) * sinf(glm::two_pi<float>() * v.x);
-                data[cell + 2] = sqrtf(v.w) * cosf(glm::two_pi<float>() * v.z);
-                data[cell + 3] = sqrtf(v.w) * sinf(glm::two_pi<float>() * v.z);
-            }
-        }
-    }
-    glActiveTexture(GL_TEXTURE1);
-    GLuint texID;
-    glGenTextures(1, &texID);
-    glBindTexture(GL_TEXTURE_3D, texID);
-    glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA32F, size, size, samples / 2);
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, size, size, samples / 2, GL_RGBA, GL_FLOAT, data);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    delete[] data;
-}
-
-float SceneBasic_Uniform::jitter() {
-    static std::default_random_engine generator;
-    static std::uniform_real_distribution<float> distrib(-0.5f, 0.5f);
-    return distrib(generator);
 }

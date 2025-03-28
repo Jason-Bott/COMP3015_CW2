@@ -41,40 +41,15 @@ private:
     GLuint endureTime;
     GLuint endlessBeyond;
 
-    //Normal Maps
-    GLuint defaultNormal;
-    GLuint spaceshipNormal;
-
-    //Shadows
-    void setupFBO();
-    GLuint shadowMap, shadowFBO, pass1Index, pass2Index;
-    int shadowMapWidth, shadowMapHeight;
-    glm::mat4 lightPV, shadowBias;
-    glm::vec3 lightPos;
-    glm::mat4 shadowScale;
-    Frustum lightFrustum;
-
-    //Jitter
-    float jitter();
-    void buildJitterTex();
-    int samplesU, samplesV;
-    int jitterMapSize;
-    float radius;
-
     //Shaders
-    GLSLProgram shadowProg;
+    //GLSLProgram shadowProg;
     GLSLProgram skyboxProg;
     GLSLProgram objectProg;
 
-    void renderShadow();
-    void renderSkybox();
-    void renderObjects();
-
-
-    void DrawScene();
+    void DrawScene(GLSLProgram& prog);
     void ResetCorridor();
 
-    void setMatrices();
+    void setMatrices(GLSLProgram& prog);
     void compile();
     static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 public:
