@@ -372,6 +372,7 @@ void SceneBasic_Uniform::render()
     //
     skyboxProg.use();
     model = mat4(1.0f);
+    model = glm::translate(model, cameraPosition);
     setMatrices(skyboxProg);
     sky.render();
 

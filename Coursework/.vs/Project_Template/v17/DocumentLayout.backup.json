@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\skybox.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:scenebasic_uniform.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\skybox.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.frag||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -34,7 +34,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Document",
@@ -68,14 +68,13 @@
               "RelativeDocumentMoniker": "shader\\skybox.frag",
               "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.frag",
               "RelativeToolTip": "shader\\skybox.frag",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAGAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-03-21T16:51:17.292Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-21T16:51:17.292Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "skybox.vert",
               "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.vert",
               "RelativeDocumentMoniker": "shader\\skybox.vert",
@@ -83,8 +82,7 @@
               "RelativeToolTip": "shader\\skybox.vert",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-03-21T16:51:05.536Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-21T16:51:05.536Z"
             },
             {
               "$type": "Document",
@@ -96,18 +94,17 @@
               "RelativeToolTip": "scenebasic_uniform.h",
               "ViewState": "AgIAACUAAAAAAAAAAAAIwD0AAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-03-08T14:01:57.485Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-08T14:01:57.485Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "scenebasic_uniform.cpp",
               "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.cpp",
               "RelativeDocumentMoniker": "scenebasic_uniform.cpp",
               "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.cpp",
               "RelativeToolTip": "scenebasic_uniform.cpp",
-              "ViewState": "AgIAAF4BAAAAAAAAAAAAAHMBAAAGAAAAAAAAAA==",
+              "ViewState": "AgIAAGABAAAAAAAAAAAAAHYBAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-03-08T13:43:38.109Z",
               "EditorCaption": ""
