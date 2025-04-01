@@ -7,16 +7,36 @@
       "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:scenebasic_uniform.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\skybox.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-render.fs||{8A5AA6CF-46E3-4520-A70A-7393D15233E9}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\shadowvolume-render.fs||{8A5AA6CF-46E3-4520-A70A-7393D15233E9}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.frag||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\skybox.frag||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.gs||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\shadowvolume.gs||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\shadowvolume.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.frag||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\shadowvolume.frag||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-render.vs||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\shadowvolume-render.vs||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:scenebasic_uniform.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-comp.vs||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\shadowvolume-comp.vs||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-comp.fs||{8A5AA6CF-46E3-4520-A70A-7393D15233E9}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\shadowvolume-comp.fs||{8A5AA6CF-46E3-4520-A70A-7393D15233E9}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\object.frag||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -25,6 +45,14 @@
     {
       "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\object.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
       "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\object.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.vert||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\skybox.vert||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.frag||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{2424A6AC-480B-441A-94EA-86C5C10C6ABF}|Project_Template.vcxproj|solutionrelative:shader\\skybox.frag||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,35 +62,128 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 12,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "shadowvolume-comp.vs",
+              "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-comp.vs",
+              "RelativeDocumentMoniker": "shader\\shadowvolume-comp.vs",
+              "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-comp.vs",
+              "RelativeToolTip": "shader\\shadowvolume-comp.vs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-01T08:15:21.299Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "shadowvolume-comp.fs",
+              "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-comp.fs",
+              "RelativeDocumentMoniker": "shader\\shadowvolume-comp.fs",
+              "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-comp.fs",
+              "RelativeToolTip": "shader\\shadowvolume-comp.fs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-01T08:15:20.585Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "shadowvolume-render.vs",
+              "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-render.vs",
+              "RelativeDocumentMoniker": "shader\\shadowvolume-render.vs",
+              "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-render.vs",
+              "RelativeToolTip": "shader\\shadowvolume-render.vs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-01T08:05:25.644Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "shadowvolume-render.fs",
+              "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-render.fs",
+              "RelativeDocumentMoniker": "shader\\shadowvolume-render.fs",
+              "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume-render.fs",
+              "RelativeToolTip": "shader\\shadowvolume-render.fs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-01T08:05:24.557Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "shadowvolume.gs",
+              "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.gs",
+              "RelativeDocumentMoniker": "shader\\shadowvolume.gs",
+              "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.gs",
+              "RelativeToolTip": "shader\\shadowvolume.gs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAACoAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-01T07:57:45.602Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 4,
+              "Title": "shadowvolume.frag",
+              "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.frag",
+              "RelativeDocumentMoniker": "shader\\shadowvolume.frag",
+              "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.frag",
+              "RelativeToolTip": "shader\\shadowvolume.frag",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-01T07:56:21.366Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "shadowvolume.vert",
+              "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.vert",
+              "RelativeDocumentMoniker": "shader\\shadowvolume.vert",
+              "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\shadowvolume.vert",
+              "RelativeToolTip": "shader\\shadowvolume.vert",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-01T07:54:23.502Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
               "Title": "object.frag",
               "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\object.frag",
               "RelativeDocumentMoniker": "shader\\object.frag",
               "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\object.frag",
               "RelativeToolTip": "shader\\object.frag",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACwAAAApAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-03-27T16:56:55.53Z"
+              "WhenOpened": "2025-03-27T16:56:55.53Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 10,
               "Title": "object.vert",
               "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\object.vert",
               "RelativeDocumentMoniker": "shader\\object.vert",
               "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\object.vert",
               "RelativeToolTip": "shader\\object.vert",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAZAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-03-27T16:57:44.74Z"
+              "WhenOpened": "2025-03-27T16:57:44.74Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 12,
               "Title": "skybox.frag",
               "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.frag",
               "RelativeDocumentMoniker": "shader\\skybox.frag",
@@ -74,7 +195,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 11,
               "Title": "skybox.vert",
               "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\shader\\skybox.vert",
               "RelativeDocumentMoniker": "shader\\skybox.vert",
@@ -86,15 +207,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "scenebasic_uniform.h",
               "DocumentMoniker": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.h",
               "RelativeDocumentMoniker": "scenebasic_uniform.h",
               "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.h",
               "RelativeToolTip": "scenebasic_uniform.h",
-              "ViewState": "AgIAACUAAAAAAAAAAAAIwD0AAAACAAAAAAAAAA==",
+              "ViewState": "AgIAABUAAAAAAAAAAAAAADQAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-03-08T14:01:57.485Z"
+              "WhenOpened": "2025-03-08T14:01:57.485Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -104,7 +226,7 @@
               "RelativeDocumentMoniker": "scenebasic_uniform.cpp",
               "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.cpp",
               "RelativeToolTip": "scenebasic_uniform.cpp",
-              "ViewState": "AgIAAGABAAAAAAAAAAAAAHYBAAAyAAAAAAAAAA==",
+              "ViewState": "AgIAALYCAAAAAAAAAAAAAMcCAAA8AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-03-08T13:43:38.109Z",
               "EditorCaption": ""

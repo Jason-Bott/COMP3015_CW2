@@ -44,11 +44,23 @@ private:
     //Shaders
     //GLSLProgram shadowProg;
     GLSLProgram skyboxProg;
+    GLSLProgram volumeProg;
+    GLSLProgram renderProg;
+    GLSLProgram compProg;
     GLSLProgram objectProg;
 
-    void DrawScene(GLSLProgram& prog);
+    //Shadows
+    glm::vec4 lightPos;
+    GLuint colorDepthFBO, fsQuad;
+    void setupFBO();
+    void pass1();
+    void pass2();
+    void pass3();
+    void updateLight();
+
     void ResetCorridor();
 
+    void drawScene(GLSLProgram& prog, bool onlyShadowCasters);
     void setMatrices(GLSLProgram& prog);
     void compile();
     static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
