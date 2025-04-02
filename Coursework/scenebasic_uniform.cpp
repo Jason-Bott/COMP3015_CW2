@@ -165,7 +165,7 @@ void SceneBasic_Uniform::initScene()
 
 void SceneBasic_Uniform::updateLight() 
 {
-    lightPos = vec4(-10.0f, 0.0f, 0.0f, 0.0f);
+    lightPos = vec4(-20.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void SceneBasic_Uniform::compile()
