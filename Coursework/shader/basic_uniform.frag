@@ -17,8 +17,7 @@ uniform struct LightInfo {
     vec3 La;
     vec3 L;
     float Intensity;
-    float Brightness;
-} lights[4];
+} lights[2];
 
 uniform struct MaterialInfo {
     vec3 Kd;
@@ -48,7 +47,7 @@ subroutine uniform RenderPassType RenderPass;
 subroutine(RenderPassType)
 void shadeWithShadow() {
     vec3 ambient = lights[0].Intensity * Material.Ka;
-    vec3 diffAndSpec = blinnPhong(0, Position, normalize(Normal));
+    vec3 diffAndSpec = lights[0].Intensity * blinnPhong(0, Position, normalize(Normal));
 
     float sum = 0;
     float shadow = 1.0;
@@ -60,7 +59,9 @@ void shadeWithShadow() {
         sum += textureProjOffset(ShadowMap, ShadowCoord, ivec2(1, -1));
         shadow = sum * 0.25;
     }
+
     FragColor = vec4(diffAndSpec * shadow + ambient, 1.0);
+    FragColor += lights[1].Intensity * vec4(blinnPhong(1, Position, normalize(Normal)), 1.0);
     FragColor = pow(FragColor, vec4(1.0 / 2.2));
 }
 

@@ -46,8 +46,7 @@
               "RelativeToolTip": "shader\\basic_uniform.vert",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-04-03T09:51:17.369Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-03T09:51:17.369Z"
             },
             {
               "$type": "Document",
@@ -59,8 +58,7 @@
               "RelativeToolTip": "shader\\basic_uniform.frag",
               "ViewState": "AgIAABgAAAAAAAAAAAAAADwAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-04-03T09:51:16.848Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-03T09:51:16.848Z"
             },
             {
               "$type": "Document",
@@ -94,7 +92,7 @@
               "RelativeDocumentMoniker": "scenebasic_uniform.h",
               "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.h",
               "RelativeToolTip": "scenebasic_uniform.h",
-              "ViewState": "AgIAACcAAAAAAAAAAAAAADMAAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABYAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-03-08T14:01:57.485Z",
               "EditorCaption": ""
@@ -107,7 +105,7 @@
               "RelativeDocumentMoniker": "scenebasic_uniform.cpp",
               "ToolTip": "C:\\Users\\jason\\University\\COMP3015_CW2\\Coursework\\scenebasic_uniform.cpp",
               "RelativeToolTip": "scenebasic_uniform.cpp",
-              "ViewState": "AgIAAHkBAAAAAAAAAAAAAJYBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAALYBAAAAAAAAAAAAAL8BAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-03-08T13:43:38.109Z",
               "EditorCaption": ""

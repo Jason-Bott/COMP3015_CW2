@@ -61,6 +61,9 @@ bool shipRising = false;
 bool collide = true;
 bool kPressed = false;
 
+float windowWallPosition = -3;
+bool windowNegative = false;
+
 //Lights
 vec4 lightPositions[] = {
     vec4(0.0f, 0.0f, -35.0f, 1.0f),
@@ -80,17 +83,17 @@ vec3 posterPositions[] = {
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(2048), shadowMapHeight(2048)
+SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(30000), shadowMapHeight(30000)
 {
     //Objects
-    floor = ObjMesh::loadWithAdjacency("media/floor.obj", true);
-    windowWall = ObjMesh::loadWithAdjacency("media/windowWall.obj", true);
-    wall = ObjMesh::loadWithAdjacency("media/wall.obj", true);
-    ceiling = ObjMesh::loadWithAdjacency("media/ceiling.obj", true);
-    doorframe = ObjMesh::loadWithAdjacency("media/doorframe.obj", true);
-    blastdoor = ObjMesh::loadWithAdjacency("media/blastdoor.obj", true);
-    spaceship = ObjMesh::loadWithAdjacency("media/spaceship.obj", true);
-    poster = ObjMesh::loadWithAdjacency("media/poster.obj", true);
+    floor = ObjMesh::load("media/floor.obj", true);
+    windowWall = ObjMesh::load("media/windowWall.obj", true);
+    wall = ObjMesh::load("media/wall.obj", true);
+    ceiling = ObjMesh::load("media/ceiling.obj", true);
+    doorframe = ObjMesh::load("media/doorframe.obj", true);
+    blastdoor = ObjMesh::load("media/blastdoor.obj", true);
+    spaceship = ObjMesh::load("media/spaceship.obj", true);
+    poster = ObjMesh::load("media/poster.obj", true);
 
     //Textures
     floorTexture = Texture::loadTexture("media/textures/floor.png");
@@ -147,15 +150,20 @@ void SceneBasic_Uniform::initScene()
 
     vec3 lightPos = vec3(-20.0f, 0.0f, 0.0f);
     lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
-    lightFrustum.setPerspective(50.0f, 1.0f, 1.0f, 25.0f);
+    lightFrustum.setPerspective(90.0f, 1.0f, 1.0f, 25.0f);
     lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
 
     mainProg.use();
-    mainProg.setUniform("lights[0].Intensity", vec3(0.85f));
+    mainProg.setUniform("lights[0].Intensity", 0.1f);
     mainProg.setUniform("lights[0].La", vec3(1.0f));
     mainProg.setUniform("lights[0].L", vec3(1.0f));
     mainProg.setUniform("ShadowMap", 0);
     mainProg.setUniform("OffsetTex", 1);
+
+    mainProg.setUniform("lights[1].Position", vec4(vec3(0.0f, 0.0f, 0.0f), 1.0));
+    mainProg.setUniform("lights[1].Intensity", 0.1f);
+    mainProg.setUniform("lights[1].La", vec3(0.8f, 0.0f, 0.0f));
+    mainProg.setUniform("lights[1].L", vec3(0.8f, 0.0f, 0.0f));
 }
 
 void SceneBasic_Uniform::compile()
@@ -343,41 +351,33 @@ void SceneBasic_Uniform::update(float t)
     //Update View
     view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
 
-    //Light Positions
-    /*for (int i = 0; i < 4; i++) {
-        std::stringstream position;
-        position << "lights[" << i << "].Position";
-        objectProg.setUniform(position.str().c_str(), view * lightPositions[i]);
-    }*/
-
     //Alarm Lighting
     if (negative) {
-        brightness -= deltaTime / 10;
-        if (brightness < 0.0f) {
-            brightness = 0.0f;
+        brightness -= deltaTime / 5;
+        if (brightness < 0.05f) {
+            brightness = 0.05f;
             negative = false;
         }
     }
     else {
-        brightness += deltaTime;
+        brightness += deltaTime / 5;
         if (brightness > 0.2f) {
             brightness = 0.2f;
             negative = true;
         }
     }
 
-    //objectProg.setUniform("lights[2].Intensity", brightness);
-    //objectProg.setUniform("lights[3].Intensity", brightness);
+    mainProg.use();
+    mainProg.setUniform("lights[1].Intensity", brightness);
 }
 
 void SceneBasic_Uniform::render()
 {
     //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     //
     //Main
     //
-
-    //Update Pass
     mainProg.use();
 
     //Pass 1 Shadow Map Gen
@@ -388,7 +388,7 @@ void SceneBasic_Uniform::render()
     glViewport(0, 0, shadowMapWidth, shadowMapHeight);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    //glCullFace(GL_FRONT);
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(2.5f, 10.0f);
     drawScene(mainProg);
@@ -443,6 +443,7 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(-2.2f, 0.0f, 0.0f));
+    model = glm::scale(model, vec3(1.0f, 1.01f, 1.0f));
     setMatrices(prog);
     windowWall->render();
 
