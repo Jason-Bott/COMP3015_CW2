@@ -161,15 +161,6 @@
   <ItemGroup>
     <None Include="shader\basic_uniform.frag" />
     <None Include="shader\basic_uniform.vert" />
-    <None Include="shader\object.frag" />
-    <None Include="shader\object.vert" />
-    <None Include="shader\shadowvolume-comp.fs" />
-    <None Include="shader\shadowvolume-comp.vs" />
-    <None Include="shader\shadowvolume-render.fs" />
-    <None Include="shader\shadowvolume-render.vs" />
-    <None Include="shader\shadowvolume.frag" />
-    <None Include="shader\shadowvolume.gs" />
-    <None Include="shader\shadowvolume.vert" />
     <None Include="shader\skybox.frag" />
     <None Include="shader\skybox.vert" />
   </ItemGroup>

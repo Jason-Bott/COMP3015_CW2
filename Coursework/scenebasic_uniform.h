@@ -42,25 +42,21 @@ private:
     GLuint endlessBeyond;
 
     //Shaders
-    //GLSLProgram shadowProg;
     GLSLProgram skyboxProg;
-    GLSLProgram volumeProg;
-    GLSLProgram renderProg;
-    GLSLProgram compProg;
-    GLSLProgram objectProg;
+    GLSLProgram mainProg;
 
     //Shadows
-    glm::vec4 lightPos;
-    GLuint colorDepthFBO, fsQuad;
     void setupFBO();
-    void pass1();
-    void pass2();
-    void pass3();
-    void updateLight();
+    GLuint shadowFBO, pass1Index, pass2Index;
+    int shadowMapWidth, shadowMapHeight;
+    glm::mat4 lightPV, shadowBias;
+    glm::vec3 lightPos;
+    glm::mat4 shadowScale;
+    Frustum lightFrustum;
 
     void ResetCorridor();
 
-    void drawScene(GLSLProgram& prog, bool onlyShadowCasters);
+    void drawScene(GLSLProgram& prog);
     void setMatrices(GLSLProgram& prog);
     void compile();
     static void mouse_callback(GLFWwindow* window, double xpos, double ypos);

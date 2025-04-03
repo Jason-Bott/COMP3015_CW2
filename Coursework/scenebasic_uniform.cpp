@@ -80,7 +80,7 @@ vec3 posterPositions[] = {
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f)
+SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(2048), shadowMapHeight(2048)
 {
     //Objects
     floor = ObjMesh::loadWithAdjacency("media/floor.obj", true);
@@ -91,13 +91,24 @@ SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f)
     blastdoor = ObjMesh::loadWithAdjacency("media/blastdoor.obj", true);
     spaceship = ObjMesh::loadWithAdjacency("media/spaceship.obj", true);
     poster = ObjMesh::loadWithAdjacency("media/poster.obj", true);
+
+    //Textures
+    floorTexture = Texture::loadTexture("media/textures/floor.png");
+    wallTexture = Texture::loadTexture("media/textures/wall.png");
+    ceilingTexture = Texture::loadTexture("media/textures/ceiling.png");
+    doorframeTexture = Texture::loadTexture("media/textures/doorframe.png");
+    blastdoorTexture = Texture::loadTexture("media/textures/blastdoor.png");
+    spaceshipTexture = Texture::loadTexture("media/textures/spaceship/StarSparrow_Red.png");
+
+    //Posters
+    powerPath = Texture::loadTexture("media/textures/posters/PowerPath.png");
+    endureTime = Texture::loadTexture("media/textures/posters/EndureTime.png");
+    endlessBeyond = Texture::loadTexture("media/textures/posters/EndlessBeyond.png");
 }
 
 void SceneBasic_Uniform::initScene()
 {
     compile();
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glClearStencil(0);
     glEnable(GL_DEPTH_TEST);
 
     model = mat4(1.0f);
@@ -116,56 +127,35 @@ void SceneBasic_Uniform::initScene()
     windowWidth = mode->width;
     windowHeight = mode->height;
 
-    resize(windowWidth, windowHeight);
-
     //Skybox
     GLuint cubeTex = Texture::loadCubeMap("media/skybox/space");
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
 
-    //Shadows
+    //Shadow Setup
     setupFBO();
 
-    renderProg.use();
-    renderProg.setUniform("LightIntensity", vec3(1.0f));
+    GLuint programHandle = mainProg.getHandle();
+    pass1Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "recordDepth");
+    pass2Index = glGetSubroutineIndex(programHandle, GL_FRAGMENT_SHADER, "shadeWithShadow");
+    shadowBias = mat4(
+        vec4(0.5f, 0.0f, 0.0f, 0.0f),
+        vec4(0.0f, 0.5f, 0.0f, 0.0f),
+        vec4(0.0f, 0.0f, 0.5f, 0.0f),
+        vec4(0.5f, 0.5f, 0.5f, 1.0f)
+    );
 
-    GLfloat verts[] = { -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f };
-    GLuint bufHandle;
-    glGenBuffers(1, &bufHandle);
-    glBindBuffer(GL_ARRAY_BUFFER, bufHandle);
-    glBufferData(GL_ARRAY_BUFFER, 4 * 3 * sizeof(GLfloat), verts, GL_STATIC_DRAW);
+    vec3 lightPos = vec3(-20.0f, 0.0f, 0.0f);
+    lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+    lightFrustum.setPerspective(50.0f, 1.0f, 1.0f, 25.0f);
+    lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
 
-    glGenVertexArrays(1, &fsQuad);
-    glBindVertexArray(fsQuad);
-    glBindBuffer(GL_ARRAY_BUFFER, bufHandle);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-    glActiveTexture(GL_TEXTURE2);
-    //Textures
-    floorTexture = Texture::loadTexture("media/textures/floor.png");
-    wallTexture = Texture::loadTexture("media/textures/wall.png");
-    ceilingTexture = Texture::loadTexture("media/textures/ceiling.png");
-    doorframeTexture = Texture::loadTexture("media/textures/doorframe.png");
-    blastdoorTexture = Texture::loadTexture("media/textures/blastdoor.png");
-    spaceshipTexture = Texture::loadTexture("media/textures/spaceship/StarSparrow_Red.png");
-
-    //Posters
-    powerPath = Texture::loadTexture("media/textures/posters/PowerPath.png");
-    endureTime = Texture::loadTexture("media/textures/posters/EndureTime.png");
-    endlessBeyond = Texture::loadTexture("media/textures/posters/EndlessBeyond.png");
-
-    updateLight();
-    renderProg.use();
-    renderProg.setUniform("Tex", 2);
-    compProg.use();
-    compProg.setUniform("DiffSpecTex", 0);
-}
-
-void SceneBasic_Uniform::updateLight() 
-{
-    lightPos = vec4(-20.0f, 0.0f, 0.0f, 1.0f);
+    mainProg.use();
+    mainProg.setUniform("lights[0].Intensity", vec3(0.85f));
+    mainProg.setUniform("lights[0].La", vec3(1.0f));
+    mainProg.setUniform("lights[0].L", vec3(1.0f));
+    mainProg.setUniform("ShadowMap", 0);
+    mainProg.setUniform("OffsetTex", 1);
 }
 
 void SceneBasic_Uniform::compile()
@@ -176,26 +166,10 @@ void SceneBasic_Uniform::compile()
         skyboxProg.link();
         skyboxProg.use();
 
-        volumeProg.compileShader("shader/shadowvolume.vert");
-        volumeProg.compileShader("shader/shadowvolume.frag");
-        volumeProg.compileShader("shader/shadowvolume.gs");
-        volumeProg.link();
-        volumeProg.use();
-
-        renderProg.compileShader("shader/shadowvolume-render.vs");
-        renderProg.compileShader("shader/shadowvolume-render.fs");
-        renderProg.link();
-        renderProg.use();
-
-        compProg.compileShader("shader/shadowvolume-comp.vs");
-        compProg.compileShader("shader/shadowvolume-comp.fs");
-        compProg.link();
-        compProg.use();
-
-        /*objectProg.compileShader("shader/object.vert");
-        objectProg.compileShader("shader/object.frag");
-        objectProg.link();
-        objectProg.use();*/
+        mainProg.compileShader("shader/basic_uniform.vert");
+        mainProg.compileShader("shader/basic_uniform.frag");
+        mainProg.link();
+        mainProg.use();
     }
     catch (GLSLProgramException& e) {
         cerr << e.what() << endl;
@@ -403,40 +377,58 @@ void SceneBasic_Uniform::render()
     //Main
     //
 
-    pass1();
+    //Update Pass
+    mainProg.use();
+
+    //Pass 1 Shadow Map Gen
+    view = lightFrustum.getViewMatrix();
+    projection = lightFrustum.getProjectionMatrix();
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass1Index);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(2.5f, 10.0f);
+    drawScene(mainProg);
+    glCullFace(GL_BACK);
     glFlush();
-    pass2();
-    glFlush();
-    pass3();
+
+    //Pass 2 Render Pass
+    view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
+    projection = glm::perspective(glm::radians(70.0f), (float)windowWidth / windowHeight, 0.3f, 100.0f);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, windowWidth, windowHeight);
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &pass2Index);
+    glDisable(GL_CULL_FACE);
+    drawScene(mainProg);
 
     //
     //Skybox
     //
-    /*skyboxProg.use();
+    skyboxProg.use();
     model = mat4(1.0f);
     model = glm::translate(model, cameraPosition);
     setMatrices(skyboxProg);
-    sky.render();*/
+    sky.render();
 }
 
-void SceneBasic_Uniform::drawScene(GLSLProgram& prog, bool onlyShadowCasters)
+void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
 {
     vec3 color;
-    if (!onlyShadowCasters) {
-        color = vec3(1.0f);
-        prog.setUniform("Ka", color * 0.1f);
-        prog.setUniform("Kd", color);
-        prog.setUniform("Ks", vec3(0.9f));
-        prog.setUniform("Shininess", 150.0f);
-    }
+    color = vec3(1.0f);
+    prog.setUniform("Ka", color * 0.1f);
+    prog.setUniform("Kd", color);
+    prog.setUniform("Ks", vec3(0.9f));
+    prog.setUniform("Shininess", 150.0f);
 
     //
     //Floor
     //
-    if (!onlyShadowCasters) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, floorTexture);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, -2.0f, 0.0f));
@@ -446,10 +438,8 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog, bool onlyShadowCasters)
     //
     //Window Wall
     //
-    if (!onlyShadowCasters) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, wallTexture);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, wallTexture);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(-2.2f, 0.0f, 0.0f));
@@ -459,10 +449,8 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog, bool onlyShadowCasters)
     //
     //Wall
     //
-    if (!onlyShadowCasters) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, wallTexture);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, wallTexture);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(2.0f, 0.0f, 0.0f));
@@ -472,10 +460,8 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog, bool onlyShadowCasters)
     //
     //Ceiling
     //
-    if (!onlyShadowCasters) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, ceilingTexture);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, ceilingTexture);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, 2.0f, 0.0f));
@@ -485,10 +471,8 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog, bool onlyShadowCasters)
     //
     //Doorframes
     //
-    if (!onlyShadowCasters) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, doorframeTexture);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, doorframeTexture);
 
     //Inner Neg
     model = mat4(1.0f);
@@ -517,10 +501,8 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog, bool onlyShadowCasters)
     //
     //Blastdoors
     //
-    if (!onlyShadowCasters) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, blastdoorTexture);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, blastdoorTexture);
 
     //Inner Neg
     model = mat4(1.0f);
@@ -549,10 +531,8 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog, bool onlyShadowCasters)
     //
     //Spaceship
     //
-    if (!onlyShadowCasters) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, spaceshipTexture);
-    }
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, spaceshipTexture);
 
     model = mat4(1.0f);
     model = glm::scale(model, vec3(0.5f, 0.5f, 0.5f));
@@ -568,20 +548,18 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog, bool onlyShadowCasters)
     {
         int textureIndex = (corridorVariant == 1) ? (2 - i) : i;
 
-        if (!onlyShadowCasters) {
-            glActiveTexture(GL_TEXTURE2);
-            switch (textureIndex)
-            {
-            case 0:
-                glBindTexture(GL_TEXTURE_2D, powerPath);
-                break;
-            case 1:
-                glBindTexture(GL_TEXTURE_2D, endureTime);
-                break;
-            case 2:
-                glBindTexture(GL_TEXTURE_2D, endlessBeyond);
-                break;
-            }
+        glActiveTexture(GL_TEXTURE1);
+        switch (textureIndex)
+        {
+        case 0:
+            glBindTexture(GL_TEXTURE_2D, powerPath);
+            break;
+        case 1:
+            glBindTexture(GL_TEXTURE_2D, endureTime);
+            break;
+        case 2:
+            glBindTexture(GL_TEXTURE_2D, endlessBeyond);
+            break;
         }
 
         model = mat4(1.0f);
@@ -614,6 +592,7 @@ void SceneBasic_Uniform::setMatrices(GLSLProgram& prog)
     prog.setUniform("NormalMatrix", mat3(mv));
     prog.setUniform("MVP", projection * mv);
     prog.setUniform("ProjMatrix", projection);
+    prog.setUniform("ShadowMatrix", lightPV * model);
 }
 
 void SceneBasic_Uniform::mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -657,90 +636,36 @@ void SceneBasic_Uniform::resize(int w, int h)
 
 void SceneBasic_Uniform::setupFBO() 
 {
-    GLuint depthBuf;
-    glGenRenderbuffers(1, &depthBuf);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthBuf);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-    GLuint ambBuf;
-    glGenRenderbuffers(1, &ambBuf);
-    glBindRenderbuffer(GL_RENDERBUFFER, ambBuf);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
+    GLfloat border[] = { 1.0f, 0.0f, 0.0f, 0.0f };
+    GLuint depthTex;
+
+    glGenTextures(1, &depthTex);
+    glBindTexture(GL_TEXTURE_2D, depthTex);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT24, shadowMapWidth, shadowMapHeight);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
 
     glActiveTexture(GL_TEXTURE0);
-    GLuint diffSpecTex;
-    glGenTextures(1, &diffSpecTex);
-    glBindTexture(GL_TEXTURE_2D, diffSpecTex);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, depthTex);
 
-    glGenFramebuffers(1, &colorDepthFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, colorDepthFBO);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuf);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, ambBuf);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, diffSpecTex, 0);
+    glGenFramebuffers(1, &shadowFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
 
-    GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    glDrawBuffers(2, drawBuffers);
+    GLenum drawBuffers[] = { GL_NONE };
+    glDrawBuffers(1, drawBuffers);
     GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (result == GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "Framebuffer is complete" << endl;
     }
     else {
-        std::cout << "Framebuffer error:" << result << endl;
+        std::cout << "Framebuffer error: " << result << endl;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void SceneBasic_Uniform::pass1() 
-{
-    glDepthMask(GL_TRUE);
-    glDisable(GL_STENCIL_TEST);
-    glEnable(GL_DEPTH_TEST);
-
-    projection = glm::infinitePerspective(glm::radians(70.0f), (float)width / height, 0.5f);
-    renderProg.use();
-    renderProg.setUniform("LightPosition", view * lightPos);
-    glBindFramebuffer(GL_FRAMEBUFFER, colorDepthFBO);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    drawScene(renderProg, false);
-}
-
-void SceneBasic_Uniform::pass2()
-{
-    volumeProg.use();
-    volumeProg.setUniform("LightPosition", view * lightPos);
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, colorDepthFBO);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(0, 0, width - 1, height - 1, 0, 0, width - 1, height - 1, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glDepthMask(GL_FALSE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_STENCIL_BUFFER_BIT);
-    glEnable(GL_STENCIL_TEST);
-    glStencilFunc(GL_ALWAYS, 0, 0xffff);
-    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
-    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
-    drawScene(volumeProg, true);
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-}
-
-void SceneBasic_Uniform::pass3()
-{
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-    glStencilFunc(GL_EQUAL, 0, 0xffff);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-    compProg.use();
-    model = mat4(1.0f);
-    projection = model;
-    view = model;
-    setMatrices(compProg);
-    glBindVertexArray(fsQuad);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glBindVertexArray(0);
-    glDisable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
 }

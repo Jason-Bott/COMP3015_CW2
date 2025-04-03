@@ -71,37 +71,10 @@
     <None Include="shader\basic_uniform.vert">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shader\object.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader\object.vert">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="shader\skybox.frag">
       <Filter>shaders</Filter>
     </None>
     <None Include="shader\skybox.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader\shadowvolume-render.vs">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader\shadowvolume.frag">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader\shadowvolume.gs">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader\shadowvolume.vert">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader\shadowvolume-comp.fs">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader\shadowvolume-comp.vs">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shader\shadowvolume-render.fs">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
