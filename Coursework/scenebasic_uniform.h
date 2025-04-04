@@ -11,6 +11,9 @@
 #include "helper/objmesh.h"
 #include "helper/skybox.h"
 #include "helper/frustum.h"
+#include "helper/random.h"
+#include "helper/grid.h"
+#include "helper/particleutils.h"
 
 class SceneBasic_Uniform : public Scene
 {
@@ -43,6 +46,7 @@ private:
 
     //Shaders
     GLSLProgram skyboxProg;
+    GLSLProgram particleProg;
     GLSLProgram mainProg;
 
     //Shadows
@@ -54,6 +58,29 @@ private:
     glm::mat4 shadowScale;
     Frustum lightFrustum;
 
+    //Particles
+    float tPrev;
+    float time, deltaT;
+    float particleLifetime;
+    int nParticles;
+    Random rand;
+
+    //Particle Buffer
+    GLuint posBuf[2], velBuf[2], age[2];
+
+    //VAO
+    GLuint particleArray[2];
+
+    //Transform Feedbacks
+    GLuint feedback[2];
+
+    GLuint drawBuf;
+    glm::vec3 emitterPos, emitterDir;
+
+    void initBuffers();
+    //float randFloat();
+
+    //Gameplay Loop
     void ResetCorridor();
 
     void drawScene(GLSLProgram& prog);

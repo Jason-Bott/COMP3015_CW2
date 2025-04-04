@@ -63,6 +63,9 @@
     <ClCompile Include="helper\frustum.cpp">
       <Filter>helper</Filter>
     </ClCompile>
+    <ClCompile Include="helper\grid.cpp">
+      <Filter>helper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\basic_uniform.frag">
@@ -75,6 +78,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shader\skybox.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\particle.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\particle.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
@@ -128,6 +137,12 @@
       <Filter>helper</Filter>
     </ClInclude>
     <ClInclude Include="helper\random.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\grid.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="helper\particleutils.h">
       <Filter>helper</Filter>
     </ClInclude>
   </ItemGroup>

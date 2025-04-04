@@ -83,7 +83,8 @@ vec3 posterPositions[] = {
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(30000), shadowMapHeight(30000)
+SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(30000), shadowMapHeight(30000), 
+drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emitterPos(1, 0, 0), emitterDir(0, 1, 0)
 {
     //Objects
     floor = ObjMesh::load("media/floor.obj", true);
@@ -112,6 +113,8 @@ SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWi
 void SceneBasic_Uniform::initScene()
 {
     compile();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
 
     model = mat4(1.0f);
@@ -164,6 +167,24 @@ void SceneBasic_Uniform::initScene()
     mainProg.setUniform("lights[1].Intensity", 0.1f);
     mainProg.setUniform("lights[1].La", vec3(0.8f, 0.0f, 0.0f));
     mainProg.setUniform("lights[1].L", vec3(0.8f, 0.0f, 0.0f));
+
+    //Particle Setup
+    particleProg.use();
+
+    glActiveTexture(GL_TEXTURE2);
+    Texture::loadTexture("media/textures/fire.png");
+    glActiveTexture(GL_TEXTURE3);
+    ParticleUtils::createRandomTex1D(nParticles * 3);
+
+    initBuffers();
+
+    particleProg.setUniform("RandomTex", 3);
+    particleProg.setUniform("ParticleTex", 2);
+    particleProg.setUniform("ParticleLifetime", particleLifetime);
+    particleProg.setUniform("ParticleSize", 0.5f);
+    particleProg.setUniform("Accel", vec3(0.0f, 0.1f, 0.0f));
+    particleProg.setUniform("EmitterPos", emitterPos);
+    particleProg.setUniform("EmitterBasis", ParticleUtils::makeArbitraryBasis(emitterDir));
 }
 
 void SceneBasic_Uniform::compile()
@@ -173,6 +194,14 @@ void SceneBasic_Uniform::compile()
         skyboxProg.compileShader("shader/skybox.frag");
         skyboxProg.link();
         skyboxProg.use();
+
+        particleProg.compileShader("shader/particle.vert");
+        particleProg.compileShader("shader/particle.frag");
+        GLuint progHandle = particleProg.getHandle();
+        const char* outputNames[] = { "Position", "Velocity", "Age" };
+        glTransformFeedbackVaryings(progHandle, 3, outputNames, GL_SEPARATE_ATTRIBS);
+        particleProg.link();
+        particleProg.use();
 
         mainProg.compileShader("shader/basic_uniform.vert");
         mainProg.compileShader("shader/basic_uniform.frag");
@@ -369,6 +398,10 @@ void SceneBasic_Uniform::update(float t)
 
     mainProg.use();
     mainProg.setUniform("lights[1].Intensity", brightness);
+
+    //Particles
+    deltaT = t - time;
+    time = t;
 }
 
 void SceneBasic_Uniform::render()
@@ -413,6 +446,44 @@ void SceneBasic_Uniform::render()
     model = glm::translate(model, cameraPosition);
     setMatrices(skyboxProg);
     sky.render();
+
+    //
+    //Particles
+    //
+    model = mat4(1.0f);
+    model = glm::translate(model, vec3(-1.8f, -2.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(90.0f), vec3(0.0f, 1.0f, 0.0f));
+
+    particleProg.use();
+
+    particleProg.setUniform("Time", time);
+    particleProg.setUniform("DeltaT", deltaT);
+    particleProg.setUniform("Pass", 1);
+
+    glEnable(GL_RASTERIZER_DISCARD);
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[drawBuf]);
+    glBeginTransformFeedback(GL_POINTS);
+    glBindVertexArray(particleArray[1 - drawBuf]);
+    glVertexAttribDivisor(0, 0);
+    glVertexAttribDivisor(1, 0);
+    glVertexAttribDivisor(2, 0);
+    glDrawArrays(GL_POINTS, 0, nParticles);
+    glBindVertexArray(0);
+    glEndTransformFeedback();
+    glDisable(GL_RASTERIZER_DISCARD);
+
+    setMatrices(particleProg);
+    particleProg.setUniform("Pass", 2);
+
+    glDepthMask(GL_FALSE);
+    glBindVertexArray(particleArray[drawBuf]);
+    glVertexAttribDivisor(0, 1);
+    glVertexAttribDivisor(1, 1);
+    glVertexAttribDivisor(2, 1);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
+    glBindVertexArray(0);
+    glDepthMask(GL_TRUE);
+    drawBuf = 1 - drawBuf;
 }
 
 void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
@@ -578,11 +649,11 @@ void SceneBasic_Uniform::ResetCorridor()
     posDoorHeight = -0.5f;
     shipHeight = -10.0f;
 
-    if (rand() % 2 == 0) {
+    if (std::rand() % 2 == 0) {
         corridorVariant = 0;
     }
     else {
-        corridorVariant = rand() % 1 + 1;
+        corridorVariant = std::rand() % 1 + 1;
     }
 }
 
@@ -592,8 +663,8 @@ void SceneBasic_Uniform::setMatrices(GLSLProgram& prog)
     prog.setUniform("ModelViewMatrix", mv);
     prog.setUniform("NormalMatrix", mat3(mv));
     prog.setUniform("MVP", projection * mv);
-    prog.setUniform("ProjMatrix", projection);
     prog.setUniform("ShadowMatrix", lightPV * model);
+    prog.setUniform("ProjectionMatrix", projection);
 }
 
 void SceneBasic_Uniform::mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -669,4 +740,78 @@ void SceneBasic_Uniform::setupFBO()
         std::cout << "Framebuffer error: " << result << endl;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void SceneBasic_Uniform::initBuffers() 
+{
+    glGenBuffers(2, posBuf);
+    glGenBuffers(2, velBuf);
+    glGenBuffers(2, age);
+
+    int size = nParticles * 3 * sizeof(GLfloat);
+    glBindBuffer(GL_ARRAY_BUFFER, posBuf[0]);
+    glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, posBuf[1]);
+    glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, velBuf[0]);
+    glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, velBuf[1]);
+    glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, age[0]);
+    glBufferData(GL_ARRAY_BUFFER, nParticles * sizeof(float), 0, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, age[1]);
+    glBufferData(GL_ARRAY_BUFFER, nParticles * sizeof(float), 0, GL_DYNAMIC_COPY);
+
+    std::vector<GLfloat> tempData(nParticles);
+    float rate = particleLifetime / nParticles;
+    for (int i = 0; i < nParticles; i++) {
+        tempData[i] = rate * (i - nParticles);
+    }
+    Random::shuffle(tempData);
+    glBindBuffer(GL_ARRAY_BUFFER, age[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, nParticles * sizeof(float), tempData.data());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenVertexArrays(2, particleArray);
+    
+    //Array 0
+    glBindVertexArray(particleArray[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, posBuf[0]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, velBuf[0]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, age[0]);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(2);
+
+    //Array 1
+    glBindVertexArray(particleArray[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, posBuf[1]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, velBuf[1]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, age[1]);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
+    glGenTransformFeedbacks(2, feedback);
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[0]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, posBuf[0]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, velBuf[0]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, age[0]);
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[1]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, posBuf[1]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, velBuf[1]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, age[1]);
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
 }
