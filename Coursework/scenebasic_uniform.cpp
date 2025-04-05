@@ -82,6 +82,7 @@ vec3 posterPositions[] = {
 //Corridor Controls
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
+int currentCorridor = 8;
 
 SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(30000), shadowMapHeight(30000), 
 drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emitterPos(1, 0, 0), emitterDir(0, 1, 0)
@@ -103,6 +104,16 @@ drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emi
     doorframeTexture = Texture::loadTexture("media/textures/doorframe.png");
     blastdoorTexture = Texture::loadTexture("media/textures/blastdoor.png");
     spaceshipTexture = Texture::loadTexture("media/textures/spaceship/StarSparrow_Red.png");
+
+    //Corridor Numbers
+    wall1Texture = Texture::loadTexture("media/textures/wall1.png");
+    wall2Texture = Texture::loadTexture("media/textures/wall2.png");
+    wall3Texture = Texture::loadTexture("media/textures/wall3.png");
+    wall4Texture = Texture::loadTexture("media/textures/wall4.png");
+    wall5Texture = Texture::loadTexture("media/textures/wall5.png");
+    wall6Texture = Texture::loadTexture("media/textures/wall6.png");
+    wall7Texture = Texture::loadTexture("media/textures/wall7.png");
+    wall8Texture = Texture::loadTexture("media/textures/wall8.png");
 
     //Posters
     powerPath = Texture::loadTexture("media/textures/posters/PowerPath.png");
@@ -321,13 +332,23 @@ void SceneBasic_Uniform::update(float t)
             front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
             cameraFront = glm::normalize(front);
 
-            ResetCorridor();
+            if (corridorVariant == 0) {
+                ResetCorridor(false);
+            }
+            else {
+                ResetCorridor(true);
+            }
         }
         else if (cameraPosition.z <= -14.0f && positionBefore.z > -14.0f)
         {
             cameraPosition.z += 28.0f;
 
-            ResetCorridor();
+            if (corridorVariant == 0) {
+                ResetCorridor(true);
+            }
+            else {
+                ResetCorridor(false);
+            }
         }
     }
 
@@ -382,16 +403,16 @@ void SceneBasic_Uniform::update(float t)
 
     //Alarm Lighting
     if (negative) {
-        brightness -= deltaTime / 5;
-        if (brightness < 0.05f) {
-            brightness = 0.05f;
+        brightness -= deltaTime / 10;
+        if (brightness < 0.02f) {
+            brightness = 0.02f;
             negative = false;
         }
     }
     else {
-        brightness += deltaTime / 5;
-        if (brightness > 0.2f) {
-            brightness = 0.2f;
+        brightness += deltaTime / 10;
+        if (brightness > 0.1f) {
+            brightness = 0.1f;
             negative = true;
         }
     }
@@ -430,7 +451,7 @@ void SceneBasic_Uniform::render()
 
     //Pass 2 Render Pass
     view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
-    projection = glm::perspective(glm::radians(70.0f), (float)windowWidth / windowHeight, 0.3f, 100.0f);
+    projection = glm::perspective(glm::radians(70.0f), (float)windowWidth / windowHeight, 0.2f, 100.0f);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, windowWidth, windowHeight);
@@ -450,11 +471,20 @@ void SceneBasic_Uniform::render()
     //
     //Particles
     //
+    particleProg.use();
+
+    if (corridorVariant == 1) {
+        glActiveTexture(GL_TEXTURE2);
+        Texture::loadTexture("media/textures/purpleFire.png");
+    }
+    else {
+        glActiveTexture(GL_TEXTURE2);
+        Texture::loadTexture("media/textures/fire.png");
+    }
+
     model = mat4(1.0f);
     model = glm::translate(model, vec3(-1.8f, -2.0f, 0.0f));
     model = glm::rotate(model, glm::radians(90.0f), vec3(0.0f, 1.0f, 0.0f));
-
-    particleProg.use();
 
     particleProg.setUniform("Time", time);
     particleProg.setUniform("DeltaT", deltaT);
@@ -510,7 +540,36 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
     //Window Wall
     //
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, wallTexture);
+    switch (currentCorridor)
+    {
+        case 1:
+            glBindTexture(GL_TEXTURE_2D, wall1Texture);
+            break;
+        case 2:
+            glBindTexture(GL_TEXTURE_2D, wall2Texture);
+            break;
+        case 3:
+            glBindTexture(GL_TEXTURE_2D, wall3Texture);
+            break;
+        case 4:
+            glBindTexture(GL_TEXTURE_2D, wall4Texture);
+            break;
+        case 5:
+            glBindTexture(GL_TEXTURE_2D, wall5Texture);
+            break;
+        case 6:
+            glBindTexture(GL_TEXTURE_2D, wall6Texture);
+            break;
+        case 7:
+            glBindTexture(GL_TEXTURE_2D, wall7Texture);
+            break;
+        case 8:
+            glBindTexture(GL_TEXTURE_2D, wall8Texture);
+            break;
+        default:
+            glBindTexture(GL_TEXTURE_2D, wallTexture);
+            break;
+    }
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(-2.2f, 0.0f, 0.0f));
@@ -607,7 +666,13 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
     glBindTexture(GL_TEXTURE_2D, spaceshipTexture);
 
     model = mat4(1.0f);
-    model = glm::scale(model, vec3(0.5f, 0.5f, 0.5f));
+
+    if (corridorVariant == 2) {
+        model = glm::scale(model, vec3(0.52f, 0.52f, 0.52f));
+    }
+    else {
+        model = glm::scale(model, vec3(0.5f, 0.5f, 0.5f));
+    }
     model = glm::rotate(model, glm::radians(90.0f), vec3(0.0f, 1.0f, 0.0f));
     model = glm::translate(model, vec3(0.0f, shipHeight, -30.0f));
     setMatrices(prog);
@@ -618,20 +683,20 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
     //
     for (int i = 0; i < 3; i++)
     {
-        int textureIndex = (corridorVariant == 1) ? (2 - i) : i;
+        int textureIndex = (corridorVariant == 3) ? (2 - i) : i;
 
         glActiveTexture(GL_TEXTURE1);
         switch (textureIndex)
         {
-        case 0:
-            glBindTexture(GL_TEXTURE_2D, powerPath);
-            break;
-        case 1:
-            glBindTexture(GL_TEXTURE_2D, endureTime);
-            break;
-        case 2:
-            glBindTexture(GL_TEXTURE_2D, endlessBeyond);
-            break;
+            case 0:
+                glBindTexture(GL_TEXTURE_2D, powerPath);
+                break;
+            case 1:
+                glBindTexture(GL_TEXTURE_2D, endureTime);
+                break;
+            case 2:
+                glBindTexture(GL_TEXTURE_2D, endlessBeyond);
+                break;
         }
 
         model = mat4(1.0f);
@@ -642,19 +707,41 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
     }
 }
 
-void SceneBasic_Uniform::ResetCorridor()
+void SceneBasic_Uniform::ResetCorridor(bool correct)
 {
+    if (correct) {
+        currentCorridor--;
+    }
+    else {
+        currentCorridor = 8;
+    }
+
     canUpdateCorridor = false;
     negDoorHeight = -0.5f;
     posDoorHeight = -0.5f;
     shipHeight = -10.0f;
 
+    //50% chance to be normal
     if (std::rand() % 2 == 0) {
         corridorVariant = 0;
     }
-    else {
+    //10% (20 of 50) chance to be obvious variant
+    else if (std::rand() % 5 == 0) {
         corridorVariant = std::rand() % 1 + 1;
     }
+    //10% (25 of 40) chance to be obscure variant
+    else if (std::rand() % 4 == 0) {
+        corridorVariant = std::rand() % 1 + 2;
+    }
+    //30% chance to be basic variant
+    else {
+        corridorVariant = std::rand() % 1 + 3;
+    }
+
+    //std::cout << corridorVariant << std::endl;
+    //corridorVariant = std::rand() % 3 + 1;
+    //3 represents how many different variants in that section
+    //1 represents total number of variants before
 }
 
 void SceneBasic_Uniform::setMatrices(GLSLProgram& prog)
@@ -703,7 +790,7 @@ void SceneBasic_Uniform::resize(int w, int h)
     width = w;
     height = h;
     glViewport(0, 0, w, h);
-    projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 100.0f);
+    projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.2f, 100.0f);
 }
 
 void SceneBasic_Uniform::setupFBO() 

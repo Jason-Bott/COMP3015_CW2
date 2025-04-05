@@ -39,6 +39,16 @@ private:
     GLuint blastdoorTexture;
     GLuint spaceshipTexture;
 
+    //Corridor Numbers
+    GLuint wall1Texture;
+    GLuint wall2Texture;
+    GLuint wall3Texture;
+    GLuint wall4Texture;
+    GLuint wall5Texture;
+    GLuint wall6Texture;
+    GLuint wall7Texture;
+    GLuint wall8Texture;
+
     //Posters
     GLuint powerPath;
     GLuint endureTime;
@@ -81,7 +91,7 @@ private:
     //float randFloat();
 
     //Gameplay Loop
-    void ResetCorridor();
+    void ResetCorridor(bool correct);
 
     void drawScene(GLSLProgram& prog);
     void setMatrices(GLSLProgram& prog);

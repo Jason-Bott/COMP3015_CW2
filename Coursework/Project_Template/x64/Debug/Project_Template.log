@@ -1,47 +1,8 @@
-﻿  glad.c
-  cube.cpp
-  frustum.cpp
-  glslprogram.cpp
-  glutils.cpp
-  grid.cpp
-C:\Users\jason\Downloads\Coursework\helper\grid.cpp(9,26): warning C4101: 'z': unreferenced local variable
-C:\Users\jason\Downloads\Coursework\helper\grid.cpp(9,13): warning C4101: 'x': unreferenced local variable
-  objmesh.cpp
-C:\Users\jason\Downloads\Coursework\helper\objmesh.cpp(188,41): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\jason\Downloads\Coursework\helper\objmesh.cpp(194,48): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\jason\Downloads\Coursework\helper\objmesh.cpp(198,43): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
-  skybox.cpp
-  stb_image.cpp
-  texture.cpp
-  trianglemesh.cpp
-  main.cpp
-  scenebasic_uniform.cpp
-C:\Users\jason\Downloads\Coursework\scenebasic_uniform.cpp(674,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\jason\Downloads\Coursework\scenebasic_uniform.cpp(675,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\jason\Downloads\Coursework\scenebasic_uniform.cpp(679,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\jason\Downloads\Coursework\scenebasic_uniform.cpp(680,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\jason\Downloads\Coursework\scenebasic_uniform.cpp(681,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\jason\Downloads\Coursework\scenebasic_uniform.cpp(682,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-  Generating Code...
-glfw3.lib(init.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(init.obj)' or at ''; linking object as if no debug info
-glfw3.lib(window.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(window.obj)' or at ''; linking object as if no debug info
-glfw3.lib(input.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(input.obj)' or at ''; linking object as if no debug info
-glfw3.lib(context.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(context.obj)' or at ''; linking object as if no debug info
-glfw3.lib(monitor.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(monitor.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_time.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_time.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_thread.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_thread.obj)' or at ''; linking object as if no debug info
-glfw3.lib(platform.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(platform.obj)' or at ''; linking object as if no debug info
-glfw3.lib(vulkan.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(vulkan.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_init.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_init.obj)' or at ''; linking object as if no debug info
-glfw3.lib(null_init.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(null_init.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_module.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_module.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_monitor.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_monitor.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_window.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_window.obj)' or at ''; linking object as if no debug info
-glfw3.lib(win32_joystick.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(win32_joystick.obj)' or at ''; linking object as if no debug info
-glfw3.lib(wgl_context.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(wgl_context.obj)' or at ''; linking object as if no debug info
-glfw3.lib(egl_context.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(egl_context.obj)' or at ''; linking object as if no debug info
-glfw3.lib(osmesa_context.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(osmesa_context.obj)' or at ''; linking object as if no debug info
-glfw3.lib(null_monitor.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(null_monitor.obj)' or at ''; linking object as if no debug info
-glfw3.lib(null_window.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(null_window.obj)' or at ''; linking object as if no debug info
-glfw3.lib(null_joystick.obj) : warning LNK4099: PDB '' was not found with 'glfw3.lib(null_joystick.obj)' or at ''; linking object as if no debug info
-  Project_Template.vcxproj -> C:\Users\jason\Downloads\Coursework\x64\Debug\Project_Template.exe
+﻿  scenebasic_uniform.cpp
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(761,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(762,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(766,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(767,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(768,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\jason\University\COMP3015_CW2\Coursework\scenebasic_uniform.cpp(769,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  Project_Template.vcxproj -> C:\Users\jason\University\COMP3015_CW2\Coursework\x64\Debug\Project_Template.exe
