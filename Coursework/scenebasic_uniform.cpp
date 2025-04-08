@@ -162,22 +162,24 @@ void SceneBasic_Uniform::initScene()
         vec4(0.5f, 0.5f, 0.5f, 1.0f)
     );
 
+    mainProg.use();
     vec3 lightPos = vec3(-20.0f, 0.0f, 0.0f);
     lightFrustum.orient(lightPos, vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
     lightFrustum.setPerspective(90.0f, 1.0f, 1.0f, 25.0f);
     lightPV = shadowBias * lightFrustum.getProjectionMatrix() * lightFrustum.getViewMatrix();
-
-    mainProg.use();
-    mainProg.setUniform("lights[0].Intensity", 0.1f);
-    mainProg.setUniform("lights[0].La", vec3(1.0f));
-    mainProg.setUniform("lights[0].L", vec3(1.0f));
+    mainProg.setUniform("lights[0].Position", view * vec4(lightPos, 1.0f));
+    mainProg.setUniform("lights[0].L", vec3(45.0f));
     mainProg.setUniform("ShadowMap", 0);
     mainProg.setUniform("OffsetTex", 1);
 
-    mainProg.setUniform("lights[1].Position", vec4(vec3(0.0f, 0.0f, 0.0f), 1.0));
-    mainProg.setUniform("lights[1].Intensity", 0.1f);
-    mainProg.setUniform("lights[1].La", vec3(0.8f, 0.0f, 0.0f));
-    mainProg.setUniform("lights[1].L", vec3(0.8f, 0.0f, 0.0f));
+    mainProg.setUniform("lights[1].Position", view * vec4(vec3(0.0f, 0.0f, 0.0f), 1.0));
+    mainProg.setUniform("lights[1].L", vec3(0.0f, 0.0f, 0.0f));
+    mainProg.setUniform("lights[2].Position", view * vec4(vec3(0.0f, 0.0f, 0.0f), 1.0));
+    mainProg.setUniform("lights[2].L", vec3(0.0f, 0.0f, 0.0f));
+    mainProg.setUniform("lights[3].Position", view * vec4(vec3(0.0f, 0.0f, 0.0f), 1.0));
+    mainProg.setUniform("lights[3].L", vec3(0.0f, 0.0f, 0.0f));
+    mainProg.setUniform("lights[4].Position", view * vec4(vec3(0.0f, 0.0f, 0.0f), 1.0));
+    mainProg.setUniform("lights[4].L", vec3(0.0f, 0.0f, 0.0f));
 
     //Particle Setup
     particleProg.use();
@@ -403,22 +405,31 @@ void SceneBasic_Uniform::update(float t)
 
     //Alarm Lighting
     if (negative) {
-        brightness -= deltaTime / 10;
-        if (brightness < 0.02f) {
-            brightness = 0.02f;
+        brightness -= deltaTime * 10;
+        if (brightness < 0.0f) {
+            brightness = 0.0f;
             negative = false;
         }
     }
     else {
-        brightness += deltaTime / 10;
-        if (brightness > 0.1f) {
-            brightness = 0.1f;
+        brightness += deltaTime * 10;
+        if (brightness > 10.0f) {
+            brightness = 10.0f;
             negative = true;
         }
     }
 
     mainProg.use();
-    mainProg.setUniform("lights[1].Intensity", brightness);
+    mainProg.setUniform("lights[0].Position", view * vec4(lightPos, 1.0f));
+    mainProg.setUniform("lights[1].Position", view * vec4(vec3(0.0f, 0.0f, -14.0f), 1.0));
+    mainProg.setUniform("lights[2].Position", view * vec4(vec3(0.0f, 0.0f, -5.0f), 1.0));
+    mainProg.setUniform("lights[3].Position", view * vec4(vec3(0.0f, 0.0f, 5.0f), 1.0));
+    mainProg.setUniform("lights[4].Position", view * vec4(vec3(0.0f, 0.0f, 14.0f), 1.0));
+
+    mainProg.setUniform("lights[1].L", vec3(brightness, 0.0f, 0.0f));
+    mainProg.setUniform("lights[2].L", vec3(brightness, 0.0f, 0.0f));
+    mainProg.setUniform("lights[3].L", vec3(brightness, 0.0f, 0.0f));
+    mainProg.setUniform("lights[4].L", vec3(brightness, 0.0f, 0.0f));
 
     //Particles
     deltaT = t - time;
@@ -518,12 +529,9 @@ void SceneBasic_Uniform::render()
 
 void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
 {
-    vec3 color;
-    color = vec3(1.0f);
-    prog.setUniform("Ka", color * 0.1f);
-    prog.setUniform("Kd", color);
-    prog.setUniform("Ks", vec3(0.9f));
-    prog.setUniform("Shininess", 150.0f);
+    prog.setUniform("Material.Rough", 0.9f);
+    prog.setUniform("Material.Metal", 0);
+    prog.setUniform("Material.Color", vec3(0.1f));
 
     //
     //Floor
