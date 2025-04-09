@@ -25,8 +25,26 @@ using glm::mat4;
 //For working out delta time
 float lastFrameTime = 0.0f;
 
+//Timer
+float timer = 0.0f;
+
+//For Menus
+unsigned int quadVAO, quadVBO;
+
+float quadVertices[] = {
+    -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+
+    -1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f
+};
+
+float timeInMenu = 0.0f;
+
 //Relative position within world space
-vec3 cameraPosition = vec3(0.0f, 0.0f, 10.0f);
+vec3 cameraPosition = vec3(0.0f, 0.0f, 14.0f);
 //The direction of travel
 vec3 cameraFront = vec3(0.0f, 0.0f, -1.0f);
 //Up position within world space
@@ -54,8 +72,22 @@ float negDoorHeight = -0.5f;
 float posDoorHeight = -0.5f;
 
 //For spaceship control
-float shipHeight = -10.0f;
-bool shipRising = false;
+int shipNumber = 0;
+vec3 shipPosition = vec3(0.0f, 0.0f, 0.0f);
+float shipScale = 0.5f;
+float shipSpeed = 10.0f;
+
+vec3 shipStartPositions[] = {
+    vec3(-10.0f, -10.0f, 0.0f),
+    vec3(-10.0f, -10.0f, -10.0f),
+    vec3(-10.0f, -10.0f, 10.0f)
+};
+
+vec3 shipEndPositions[] = {
+    vec3(-10.0f, 10.0f, 0.0f),
+    vec3(-10.0f, 10.0f, 10.0f),
+    vec3(-10.0f, 10.0f, -10.0f)
+};
 
 //Collisons
 bool collide = true;
@@ -64,14 +96,6 @@ bool kPressed = false;
 float windowWallPosition = -3;
 bool windowNegative = false;
 
-//Lights
-vec4 lightPositions[] = {
-    vec4(0.0f, 0.0f, -35.0f, 1.0f),
-    vec4(0.0f, 0.0f, 35.0f, 1.0f),
-    vec4(0.0f, 0.0f, -35.0f, 1.0f),
-    vec4(0.0f, 0.0f, 35.0f, 1.0f)
-};
-
 //Posters
 vec3 posterPositions[] = {
     vec3(1.99f, 0.25f, -2.5f),
@@ -79,10 +103,28 @@ vec3 posterPositions[] = {
     vec3(1.99f, 0.25f, 2.5f)
 };
 
+//Toys
+vec3 toyPositions[] = {
+    vec3(-2.4f, -0.42f, 7.3f),
+    vec3(-2.0f, -0.42f, -0.4f),
+    vec3(-2.0f, -0.42f, -1.0f),
+    vec3(-2.4f, -0.42f, -5.4f),
+    vec3(-2.4f, -0.42f, -4.0f)
+};
+
+float toyRotations[] = {
+    135.0f,
+    -135.0f,
+    -135.0f,
+    135.0f,
+    135.0f
+};
+
 //Corridor Controls
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
 int currentCorridor = 8;
+float whiteness = 0.0f;
 
 SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(30000), shadowMapHeight(30000), 
 drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emitterPos(1, 0, 0), emitterDir(0, 1, 0)
@@ -94,6 +136,7 @@ drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emi
     ceiling = ObjMesh::load("media/ceiling.obj", true);
     doorframe = ObjMesh::load("media/doorframe.obj", true);
     blastdoor = ObjMesh::load("media/blastdoor.obj", true);
+    alarm = ObjMesh::load("media/alarm.obj", true);
     spaceship = ObjMesh::load("media/spaceship.obj", true);
     poster = ObjMesh::load("media/poster.obj", true);
 
@@ -103,6 +146,7 @@ drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emi
     ceilingTexture = Texture::loadTexture("media/textures/ceiling.png");
     doorframeTexture = Texture::loadTexture("media/textures/doorframe.png");
     blastdoorTexture = Texture::loadTexture("media/textures/blastdoor.png");
+    alarmTexture = Texture::loadTexture("media/textures/alarm.png");
     spaceshipTexture = Texture::loadTexture("media/textures/spaceship/StarSparrow_Red.png");
 
     //Corridor Numbers
@@ -119,6 +163,23 @@ drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emi
     powerPath = Texture::loadTexture("media/textures/posters/PowerPath.png");
     endureTime = Texture::loadTexture("media/textures/posters/EndureTime.png");
     endlessBeyond = Texture::loadTexture("media/textures/posters/EndlessBeyond.png");
+    flippedEndlessBeyond = Texture::loadTexture("media/textures/posters/FlippedEndlessBeyond.png");
+
+    //Menus
+    congratsMenu = Texture::loadTexture("media/textures/menus/congrats.png");
+    madeItMenu = Texture::loadTexture("media/textures/menus/madeIt.png");
+    digitTextures[0] = Texture::loadTexture("media/textures/menus/digit0.png");
+    digitTextures[1] = Texture::loadTexture("media/textures/menus/digit1.png");
+    digitTextures[2] = Texture::loadTexture("media/textures/menus/digit2.png");
+    digitTextures[3] = Texture::loadTexture("media/textures/menus/digit3.png");
+    digitTextures[4] = Texture::loadTexture("media/textures/menus/digit4.png");
+    digitTextures[5] = Texture::loadTexture("media/textures/menus/digit5.png");
+    digitTextures[6] = Texture::loadTexture("media/textures/menus/digit6.png");
+    digitTextures[7] = Texture::loadTexture("media/textures/menus/digit7.png");
+    digitTextures[8] = Texture::loadTexture("media/textures/menus/digit8.png");
+    digitTextures[9] = Texture::loadTexture("media/textures/menus/digit9.png");
+    colonTexture = Texture::loadTexture("media/textures/menus/colon.png");
+    pointTexture = Texture::loadTexture("media/textures/menus/point.png");
 }
 
 void SceneBasic_Uniform::initScene()
@@ -149,6 +210,19 @@ void SceneBasic_Uniform::initScene()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTex);
 
+    //Menu Setup
+    menuProg.use();
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glBindVertexArray(0);
+
     //Shadow Setup
     setupFBO();
 
@@ -171,6 +245,7 @@ void SceneBasic_Uniform::initScene()
     mainProg.setUniform("lights[0].L", vec3(45.0f));
     mainProg.setUniform("ShadowMap", 0);
     mainProg.setUniform("OffsetTex", 1);
+    mainProg.setUniform("Whiteness", whiteness);
 
     mainProg.setUniform("lights[1].Position", view * vec4(vec3(0.0f, 0.0f, 0.0f), 1.0));
     mainProg.setUniform("lights[1].L", vec3(0.0f, 0.0f, 0.0f));
@@ -198,11 +273,19 @@ void SceneBasic_Uniform::initScene()
     particleProg.setUniform("Accel", vec3(0.0f, 0.1f, 0.0f));
     particleProg.setUniform("EmitterPos", emitterPos);
     particleProg.setUniform("EmitterBasis", ParticleUtils::makeArbitraryBasis(emitterDir));
+
+    //Set Randomness Seed
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
 }
 
 void SceneBasic_Uniform::compile()
 {
     try {
+        menuProg.compileShader("shader/menu.vert");
+        menuProg.compileShader("shader/menu.frag");
+        menuProg.link();
+        menuProg.use();
+
         skyboxProg.compileShader("shader/skybox.vert");
         skyboxProg.compileShader("shader/skybox.frag");
         skyboxProg.link();
@@ -241,6 +324,33 @@ void SceneBasic_Uniform::update(float t)
     lastFrameTime = t;
 
     vec3 positionBefore = cameraPosition;
+
+    if (currentCorridor == 0) {
+        whiteness += deltaTime / 2.5;
+        if (whiteness > 1.0f) {
+            whiteness = 1.0f;
+            timeInMenu += deltaTime;
+        }
+
+        mainProg.use();
+        mainProg.setUniform("Whiteness", whiteness);
+
+        return;
+    }
+
+    //Update Timer
+    timer += deltaTime;
+
+    //Corridor Variant Changes
+    if (corridorVariant == 2) {
+        shipScale += deltaTime / 10;
+        if (shipScale > 1.5f) {
+            shipScale = 1.5f;
+        }
+    }
+    else {
+        shipScale = 0.5f;
+    }
 
     //Movement
     const float movementSpeed = 5.0f * deltaTime;
@@ -359,44 +469,58 @@ void SceneBasic_Uniform::update(float t)
 
     if (cameraPosition.z >= 6.0f) {
         posDoorHeight += doorSpeed * deltaTime;
+
         if (posDoorHeight > 2.51f) {
             posDoorHeight = 2.51f;
         }
     }
     else {
         posDoorHeight -= doorSpeed * deltaTime;
+
         if (posDoorHeight < -0.5f) {
             posDoorHeight = -0.5f;
         }
     }
 
     if (cameraPosition.z <= -6.0f) {
-        negDoorHeight += doorSpeed * deltaTime;
+        if (corridorVariant == 9) {
+            negDoorHeight += (doorSpeed / 2) * deltaTime;
+        }
+        else {
+            negDoorHeight += doorSpeed * deltaTime;
+        }
+
         if (negDoorHeight > 2.51f) {
             negDoorHeight = 2.51f;
         }
     }
     else {
-        negDoorHeight -= doorSpeed * deltaTime;
+        if (corridorVariant == 9) {
+            negDoorHeight -= (doorSpeed / 2) * deltaTime;
+        }
+        else {
+            negDoorHeight -= doorSpeed * deltaTime;
+        }
+
         if (negDoorHeight < -0.5f) {
             negDoorHeight = -0.5f;
         }
     }
 
     //Spaceship Updates
-    float shipSpeed = 2.5f;
+    if (length(shipPosition - shipEndPositions[shipNumber]) < 0.1) {
+        if (shipNumber == 2) {
+            shipNumber = 0;
+        }
+        else {
+            shipNumber++;
+        }
+        shipPosition = shipStartPositions[shipNumber];
+    }
 
-    if (!shipRising) {
-        if (positionBefore.z > 6.0f && cameraPosition.z <= 6.0f) {
-            shipRising = true;
-        }
-    }
-    else {
-        shipHeight += shipSpeed * deltaTime;
-        if (shipHeight > -1.0f) {
-            shipHeight = -1.0f;
-        }
-    }
+    vec3 target = shipEndPositions[shipNumber];
+    vec3 direction = glm::normalize(target - shipPosition);
+    shipPosition += direction * shipSpeed * deltaTime; 
 
     //std::cout << cameraPosition.x << ", " << cameraPosition.z << std::endl;
     //std::cout << pitch << ", " << yaw << std::endl;
@@ -404,27 +528,30 @@ void SceneBasic_Uniform::update(float t)
     view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
 
     //Alarm Lighting
-    if (negative) {
-        brightness -= deltaTime * 10;
-        if (brightness < 0.0f) {
-            brightness = 0.0f;
-            negative = false;
+    if (corridorVariant != 3) 
+    {
+        if (negative) {
+            brightness -= deltaTime * 10;
+            if (brightness < 0.0f) {
+                brightness = 0.0f;
+                negative = false;
+            }
         }
-    }
-    else {
-        brightness += deltaTime * 10;
-        if (brightness > 10.0f) {
-            brightness = 10.0f;
-            negative = true;
+        else {
+            brightness += deltaTime * 10;
+            if (brightness > 10.0f) {
+                brightness = 10.0f;
+                negative = true;
+            }
         }
     }
 
     mainProg.use();
     mainProg.setUniform("lights[0].Position", view * vec4(lightPos, 1.0f));
-    mainProg.setUniform("lights[1].Position", view * vec4(vec3(0.0f, 0.0f, -14.0f), 1.0));
-    mainProg.setUniform("lights[2].Position", view * vec4(vec3(0.0f, 0.0f, -5.0f), 1.0));
-    mainProg.setUniform("lights[3].Position", view * vec4(vec3(0.0f, 0.0f, 5.0f), 1.0));
-    mainProg.setUniform("lights[4].Position", view * vec4(vec3(0.0f, 0.0f, 14.0f), 1.0));
+    mainProg.setUniform("lights[1].Position", view * vec4(vec3(0.0f, 1.0f, -14.0f), 1.0));
+    mainProg.setUniform("lights[2].Position", view * vec4(vec3(0.0f, 1.0f, -5.0f), 1.0));
+    mainProg.setUniform("lights[3].Position", view * vec4(vec3(0.0f, 1.0f, 5.0f), 1.0));
+    mainProg.setUniform("lights[4].Position", view * vec4(vec3(0.0f, 1.0f, 14.0f), 1.0));
 
     mainProg.setUniform("lights[1].L", vec3(brightness, 0.0f, 0.0f));
     mainProg.setUniform("lights[2].L", vec3(brightness, 0.0f, 0.0f));
@@ -438,7 +565,57 @@ void SceneBasic_Uniform::update(float t)
 
 void SceneBasic_Uniform::render()
 {
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //Completion Screen
+    if (whiteness >= 1.0f) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        menuProg.use();
+        glBindVertexArray(quadVAO);
+
+        //Timer
+        int minutes = timer / 60;
+        int seconds = int(timer) % 60;
+        int milliseconds = (timer - int(timer)) * 100;
+
+        if (timeInMenu > 3.0f) {
+            int tens = minutes / 10;
+            int ones = minutes % 10;
+
+            drawDigit(digitTextures[tens], -0.7f, -0.5f, 0.1f, 0.2f);
+            drawDigit(digitTextures[ones], -0.5f, -0.5f, 0.1f, 0.2f);
+        }
+        if (timeInMenu > 4.0f) {
+            int tens = seconds / 10;
+            int ones = seconds % 10;
+
+            drawDigit(colonTexture, -0.3f, -0.5f, 0.1f, 0.2f);
+            drawDigit(digitTextures[tens], -0.1f, -0.5f, 0.1f, 0.2f);
+            drawDigit(digitTextures[ones], 0.1f, -0.5f, 0.1f, 0.2f);
+        }
+        if (timeInMenu > 5.0f) {
+            int tens = milliseconds / 10;
+            int ones = milliseconds % 10;
+
+            drawDigit(pointTexture, 0.3f, -0.5f, 0.1f, 0.2f);
+            drawDigit(digitTextures[tens], 0.5f, -0.5f, 0.1f, 0.2f);
+            drawDigit(digitTextures[ones], 0.7f, -0.5f, 0.1f, 0.2f);
+        }
+
+        //Main Menu Section
+        glActiveTexture(GL_TEXTURE5);
+        if (timeInMenu < 2.0f) {
+            glBindTexture(GL_TEXTURE_2D, congratsMenu);
+        }
+        else {
+            glBindTexture(GL_TEXTURE_2D, madeItMenu);
+        }
+        menuProg.setUniform("position", glm::vec2(0.0f, 0.0f));
+        menuProg.setUniform("scale", glm::vec2(1.0f, 1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        return;
+    }
+
     
     //
     //Main
@@ -668,30 +845,107 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
     blastdoor->render();
 
     //
-    //Spaceship
+    //Alarms
     //
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, alarmTexture);
+
+    //Neg Room
+    model = mat4(1.0f);
+    model = glm::translate(model, vec3(0.0f, 2.0f, -14.0f));
+    setMatrices(prog);
+    alarm->render();
+
+    //Neg Corridor
+    model = mat4(1.0f);
+    model = glm::translate(model, vec3(0.0f, 2.0f, -5.0f));
+    setMatrices(prog);
+    alarm->render();
+
+    //Pos Corridor
+    model = mat4(1.0f);
+    model = glm::translate(model, vec3(0.0f, 2.0f, 5.0f));
+    setMatrices(prog);
+    alarm->render();
+
+    //Pos Room
+    model = mat4(1.0f);
+    model = glm::translate(model, vec3(0.0f, 2.0f, 14.0f));
+    setMatrices(prog);
+    alarm->render();
+
+    //
+    //Spaceship Outside
+    //
+    prog.setUniform("Material.Rough", 0.3f);
+    prog.setUniform("Material.Metal", 1);
+    prog.setUniform("Material.Color", vec3(0.5f));
+
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, spaceshipTexture);
 
     model = mat4(1.0f);
-
-    if (corridorVariant == 2) {
-        model = glm::scale(model, vec3(0.52f, 0.52f, 0.52f));
+    model = glm::translate(model, shipPosition);
+    model = glm::scale(model, vec3(shipScale, shipScale, shipScale));
+    switch (shipNumber) {
+        case 0:
+            model = glm::rotate(model, glm::radians(90.0f), vec3(0.0f, -1.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(90.0f), vec3(-1.0f, 0.0f, 0.0f));
+            break;
+        case 1:
+            model = glm::rotate(model, glm::radians(45.0f), vec3(-1.0f, 0.0f, 0.0f));
+            break;
+        case 2:
+            model = glm::rotate(model, glm::radians(180.0f), vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(45.0f), vec3(-1.0f, 0.0f, 0.0f));
+            break;
     }
-    else {
-        model = glm::scale(model, vec3(0.5f, 0.5f, 0.5f));
+    if (corridorVariant == 6) {
+        model = glm::rotate(model, glm::radians(180.0f), vec3(0.0f, 1.0f, 0.0f));
     }
-    model = glm::rotate(model, glm::radians(90.0f), vec3(0.0f, 1.0f, 0.0f));
-    model = glm::translate(model, vec3(0.0f, shipHeight, -30.0f));
     setMatrices(prog);
     spaceship->render();
 
     //
+    //Toy Spaceships
+    //
+    prog.setUniform("Material.Rough", 0.7f);
+    prog.setUniform("Material.Metal", 1);
+    prog.setUniform("Material.Color", vec3(0.2f));
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (corridorVariant == 7 && cameraPosition.z < toyPositions[i].z) {
+            continue;
+        }
+
+        model = mat4(1.0f);
+        model = glm::translate(model, toyPositions[i]);
+        model = glm::scale(model, vec3(0.05f, 0.05f, 0.05f));
+        model = glm::rotate(model, glm::radians(toyRotations[i]), vec3(0.0f, 1.0f, 0.0f));
+        setMatrices(prog);
+        spaceship->render();
+    }
+
+    if (corridorVariant == 8) {
+        model = mat4(1.0f);
+        model = glm::translate(model, toyPositions[4]);
+        model = glm::scale(model, vec3(0.05f, 0.05f, 0.05f));
+        model = glm::rotate(model, glm::radians(toyRotations[4]), vec3(0.0f, 1.0f, 0.0f));
+        setMatrices(prog);
+        spaceship->render();
+    }
+
+    //
     //Posters
     //
+    prog.setUniform("Material.Rough", 0.9f);
+    prog.setUniform("Material.Metal", 0);
+    prog.setUniform("Material.Color", vec3(0.1f));
+
     for (int i = 0; i < 3; i++)
     {
-        int textureIndex = (corridorVariant == 3) ? (2 - i) : i;
+        int textureIndex = (corridorVariant == 10) ? (2 - i) : i;
 
         glActiveTexture(GL_TEXTURE1);
         switch (textureIndex)
@@ -703,13 +957,24 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
                 glBindTexture(GL_TEXTURE_2D, endureTime);
                 break;
             case 2:
-                glBindTexture(GL_TEXTURE_2D, endlessBeyond);
+                if (corridorVariant == 5) {
+                    glBindTexture(GL_TEXTURE_2D, flippedEndlessBeyond);
+                }
+                else {
+                    glBindTexture(GL_TEXTURE_2D, endlessBeyond);
+                }
                 break;
         }
 
         model = mat4(1.0f);
         model = glm::translate(model, posterPositions[i]);
-        model = glm::scale(model, vec3(2.0f, 2.0f, 2.0f));
+        if (corridorVariant == 4) {
+            model = glm::scale(model, vec3(2.2f, 2.2f, 2.2f));
+        }
+        else {
+            model = glm::scale(model, vec3(2.0f, 2.0f, 2.0f));
+        }
+
         setMatrices(prog);
         poster->render();
     }
@@ -727,7 +992,8 @@ void SceneBasic_Uniform::ResetCorridor(bool correct)
     canUpdateCorridor = false;
     negDoorHeight = -0.5f;
     posDoorHeight = -0.5f;
-    shipHeight = -10.0f;
+    shipNumber = 0;
+    shipPosition = vec3(0.0f, 0.0f, 0.0f);
 
     //50% chance to be normal
     if (std::rand() % 2 == 0) {
@@ -735,18 +1001,18 @@ void SceneBasic_Uniform::ResetCorridor(bool correct)
     }
     //10% (20 of 50) chance to be obvious variant
     else if (std::rand() % 5 == 0) {
-        corridorVariant = std::rand() % 1 + 1;
+        corridorVariant = std::rand() % 3 + 1;
     }
     //10% (25 of 40) chance to be obscure variant
     else if (std::rand() % 4 == 0) {
-        corridorVariant = std::rand() % 1 + 2;
+        corridorVariant = std::rand() % 2 + 4;
     }
     //30% chance to be basic variant
     else {
-        corridorVariant = std::rand() % 1 + 3;
+        corridorVariant = std::rand() % 5 + 6;
     }
 
-    //std::cout << corridorVariant << std::endl;
+    std::cout << corridorVariant << std::endl;
     //corridorVariant = std::rand() % 3 + 1;
     //3 represents how many different variants in that section
     //1 represents total number of variants before
@@ -799,6 +1065,19 @@ void SceneBasic_Uniform::resize(int w, int h)
     height = h;
     glViewport(0, 0, w, h);
     projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.2f, 100.0f);
+}
+
+void SceneBasic_Uniform::drawDigit(GLuint texture, float x, float y, float w, float h) {
+    menuProg.use();
+    glBindVertexArray(quadVAO);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    menuProg.setUniform("position", glm::vec2(x, y));
+    menuProg.setUniform("scale", glm::vec2(w, h));
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void SceneBasic_Uniform::setupFBO() 

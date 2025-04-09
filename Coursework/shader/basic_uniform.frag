@@ -25,6 +25,8 @@ uniform struct MaterialInfo {
     vec3 Color;
 } Material;
 
+uniform float Whiteness;
+
 float ggxDistribution(float nDotH) {
     float alpha2 = Material.Rough * Material.Rough * Material.Rough * Material.Rough;
     float d = (nDotH * nDotH) * (alpha2 - 1) + 1;
@@ -97,11 +99,16 @@ void shadeWithShadow() {
     //FragColor = vec4(diffAndSpec * shadow + ambient, 1.0);
     //FragColor += lights[1].Intensity * vec4(blinnPhong(1, Position, normalize(Normal)), 1.0);
 
+    
     FragColor = vec4(microfacetModel(0, Position, normalize(Normal)) * shadow, 1.0);
     for(int i = 1; i < 5; i++) {
         FragColor += vec4(microfacetModel(i, Position, normalize(Normal)), 1.0);
     }
     FragColor = pow(FragColor, vec4(1.0 / 2.2));
+
+    if(Whiteness > 0.0) {
+        FragColor += vec4(Whiteness, Whiteness, Whiteness, Whiteness);
+    }
 }
 
 subroutine(RenderPassType)

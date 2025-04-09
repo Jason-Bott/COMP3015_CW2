@@ -28,6 +28,7 @@ private:
     std::unique_ptr<ObjMesh> ceiling;
     std::unique_ptr<ObjMesh> doorframe;
     std::unique_ptr<ObjMesh> blastdoor;
+    std::unique_ptr<ObjMesh> alarm;
     std::unique_ptr<ObjMesh> spaceship;
     std::unique_ptr<ObjMesh> poster;
 
@@ -37,6 +38,7 @@ private:
     GLuint ceilingTexture;
     GLuint doorframeTexture;
     GLuint blastdoorTexture;
+    GLuint alarmTexture;
     GLuint spaceshipTexture;
 
     //Corridor Numbers
@@ -53,8 +55,17 @@ private:
     GLuint powerPath;
     GLuint endureTime;
     GLuint endlessBeyond;
+    GLuint flippedEndlessBeyond;
+
+    //Menus
+    GLuint congratsMenu;
+    GLuint madeItMenu;
+    GLuint digitTextures[10];
+    GLuint colonTexture;
+    GLuint pointTexture;
 
     //Shaders
+    GLSLProgram menuProg;
     GLSLProgram skyboxProg;
     GLSLProgram particleProg;
     GLSLProgram mainProg;
@@ -95,6 +106,7 @@ private:
 
     void drawScene(GLSLProgram& prog);
     void setMatrices(GLSLProgram& prog);
+    void drawDigit(GLuint texture, float x, float y, float w, float h);
     void compile();
     static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 public:
