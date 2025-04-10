@@ -42,14 +42,7 @@ private:
     GLuint spaceshipTexture;
 
     //Corridor Numbers
-    GLuint wall1Texture;
-    GLuint wall2Texture;
-    GLuint wall3Texture;
-    GLuint wall4Texture;
-    GLuint wall5Texture;
-    GLuint wall6Texture;
-    GLuint wall7Texture;
-    GLuint wall8Texture;
+    GLuint wallTextures[8];
 
     //Posters
     GLuint powerPath;
@@ -58,8 +51,11 @@ private:
     GLuint flippedEndlessBeyond;
 
     //Menus
+    GLuint titleMenu;
+    GLuint instructionsMenu;
     GLuint congratsMenu;
     GLuint madeItMenu;
+    GLuint goAgainMenu;
     GLuint digitTextures[10];
     GLuint colonTexture;
     GLuint pointTexture;

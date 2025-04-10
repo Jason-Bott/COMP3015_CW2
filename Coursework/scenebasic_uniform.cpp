@@ -124,6 +124,10 @@ float toyRotations[] = {
 bool canUpdateCorridor = true;
 int corridorVariant = 0;
 int currentCorridor = 8;
+
+//Menu Controls
+bool inTitleMenu = true;
+bool inInstructionMenu = false;
 float whiteness = 0.0f;
 
 SceneBasic_Uniform::SceneBasic_Uniform() : angle(0.0f), sky(100.0f), shadowMapWidth(30000), shadowMapHeight(30000), 
@@ -150,14 +154,14 @@ drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emi
     spaceshipTexture = Texture::loadTexture("media/textures/spaceship/StarSparrow_Red.png");
 
     //Corridor Numbers
-    wall1Texture = Texture::loadTexture("media/textures/wall1.png");
-    wall2Texture = Texture::loadTexture("media/textures/wall2.png");
-    wall3Texture = Texture::loadTexture("media/textures/wall3.png");
-    wall4Texture = Texture::loadTexture("media/textures/wall4.png");
-    wall5Texture = Texture::loadTexture("media/textures/wall5.png");
-    wall6Texture = Texture::loadTexture("media/textures/wall6.png");
-    wall7Texture = Texture::loadTexture("media/textures/wall7.png");
-    wall8Texture = Texture::loadTexture("media/textures/wall8.png");
+    wallTextures[0] = Texture::loadTexture("media/textures/wall1.png");
+    wallTextures[1] = Texture::loadTexture("media/textures/wall2.png");
+    wallTextures[2] = Texture::loadTexture("media/textures/wall3.png");
+    wallTextures[3] = Texture::loadTexture("media/textures/wall4.png");
+    wallTextures[4] = Texture::loadTexture("media/textures/wall5.png");
+    wallTextures[5] = Texture::loadTexture("media/textures/wall6.png");
+    wallTextures[6] = Texture::loadTexture("media/textures/wall7.png");
+    wallTextures[7] = Texture::loadTexture("media/textures/wall8.png");
 
     //Posters
     powerPath = Texture::loadTexture("media/textures/posters/PowerPath.png");
@@ -166,8 +170,11 @@ drawBuf(1), time(0.0f), deltaT(0), particleLifetime(3.0f), nParticles(4000), emi
     flippedEndlessBeyond = Texture::loadTexture("media/textures/posters/FlippedEndlessBeyond.png");
 
     //Menus
+    titleMenu = Texture::loadTexture("media/textures/menus/title.png");
+    instructionsMenu = Texture::loadTexture("media/textures/menus/instructions.png");
     congratsMenu = Texture::loadTexture("media/textures/menus/congrats.png");
     madeItMenu = Texture::loadTexture("media/textures/menus/madeIt.png");
+    goAgainMenu = Texture::loadTexture("media/textures/menus/goAgain.png");
     digitTextures[0] = Texture::loadTexture("media/textures/menus/digit0.png");
     digitTextures[1] = Texture::loadTexture("media/textures/menus/digit1.png");
     digitTextures[2] = Texture::loadTexture("media/textures/menus/digit2.png");
@@ -323,13 +330,48 @@ void SceneBasic_Uniform::update(float t)
     float deltaTime = t - lastFrameTime;
     lastFrameTime = t;
 
-    vec3 positionBefore = cameraPosition;
+    if (inTitleMenu || inInstructionMenu) {
+        glfwSetCursorPosCallback(window, nullptr);
 
-    if (currentCorridor == 0) {
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        {
+            inTitleMenu = false;
+            inInstructionMenu = false;
+            firstMouse = true;
+            glfwSetCursorPosCallback(window, SceneBasic_Uniform::mouse_callback);
+        }
+        if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        {
+            inTitleMenu = false;
+            inInstructionMenu = true;
+        }
+
+        return;
+    }
+
+    if (currentCorridor == 7) {
+        glfwSetCursorPosCallback(window, nullptr);
+
         whiteness += deltaTime / 2.5;
         if (whiteness > 1.0f) {
             whiteness = 1.0f;
             timeInMenu += deltaTime;
+
+            if (timeInMenu > 7.0f) {
+                if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+                {
+                    currentCorridor = 8;
+                    corridorVariant = 0;
+                    timer = 0.0f;
+                    cameraPosition = vec3(0.0f, 0.0f, 14.0f);
+                    cameraFront = vec3(0.0f, 0.0f, -1.0f);
+                    cameraUp = vec3(0.0f, 1.0f, 0.0f);
+                    whiteness = 0.0f;
+                    timeInMenu = 0.0f;
+                    firstMouse = true;
+                    glfwSetCursorPosCallback(window, SceneBasic_Uniform::mouse_callback);
+                }
+            }
         }
 
         mainProg.use();
@@ -351,6 +393,9 @@ void SceneBasic_Uniform::update(float t)
     else {
         shipScale = 0.5f;
     }
+
+    //Position Before Changes
+    vec3 positionBefore = cameraPosition;
 
     //Movement
     const float movementSpeed = 5.0f * deltaTime;
@@ -565,6 +610,26 @@ void SceneBasic_Uniform::update(float t)
 
 void SceneBasic_Uniform::render()
 {
+    //Main Menu
+    if (inTitleMenu || inInstructionMenu) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        menuProg.use();
+        glBindVertexArray(quadVAO);
+        glActiveTexture(GL_TEXTURE5);
+        if (inTitleMenu) {
+            glBindTexture(GL_TEXTURE_2D, titleMenu);
+        }
+        else {
+            glBindTexture(GL_TEXTURE_2D, instructionsMenu);
+        }
+        menuProg.setUniform("position", glm::vec2(0.0f, 0.0f));
+        menuProg.setUniform("scale", glm::vec2(1.0f, 1.0f));
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        return;
+    }
+
     //Completion Screen
     if (whiteness >= 1.0f) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -606,8 +671,11 @@ void SceneBasic_Uniform::render()
         if (timeInMenu < 2.0f) {
             glBindTexture(GL_TEXTURE_2D, congratsMenu);
         }
-        else {
+        else if (timeInMenu < 7.0f) {
             glBindTexture(GL_TEXTURE_2D, madeItMenu);
+        }
+        else {
+            glBindTexture(GL_TEXTURE_2D, goAgainMenu);
         }
         menuProg.setUniform("position", glm::vec2(0.0f, 0.0f));
         menuProg.setUniform("scale", glm::vec2(1.0f, 1.0f));
@@ -725,36 +793,7 @@ void SceneBasic_Uniform::drawScene(GLSLProgram& prog)
     //Window Wall
     //
     glActiveTexture(GL_TEXTURE1);
-    switch (currentCorridor)
-    {
-        case 1:
-            glBindTexture(GL_TEXTURE_2D, wall1Texture);
-            break;
-        case 2:
-            glBindTexture(GL_TEXTURE_2D, wall2Texture);
-            break;
-        case 3:
-            glBindTexture(GL_TEXTURE_2D, wall3Texture);
-            break;
-        case 4:
-            glBindTexture(GL_TEXTURE_2D, wall4Texture);
-            break;
-        case 5:
-            glBindTexture(GL_TEXTURE_2D, wall5Texture);
-            break;
-        case 6:
-            glBindTexture(GL_TEXTURE_2D, wall6Texture);
-            break;
-        case 7:
-            glBindTexture(GL_TEXTURE_2D, wall7Texture);
-            break;
-        case 8:
-            glBindTexture(GL_TEXTURE_2D, wall8Texture);
-            break;
-        default:
-            glBindTexture(GL_TEXTURE_2D, wallTexture);
-            break;
-    }
+    glBindTexture(GL_TEXTURE_2D, wallTextures[currentCorridor - 1]);
 
     model = mat4(1.0f);
     model = glm::translate(model, vec3(-2.2f, 0.0f, 0.0f));
