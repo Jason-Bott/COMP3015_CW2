@@ -349,7 +349,7 @@ void SceneBasic_Uniform::update(float t)
         return;
     }
 
-    if (currentCorridor == 7) {
+    if (currentCorridor == 0) {
         glfwSetCursorPosCallback(window, nullptr);
 
         whiteness += deltaTime / 2.5;
@@ -1123,6 +1123,12 @@ void SceneBasic_Uniform::setupFBO()
 {
     GLfloat border[] = { 1.0f, 0.0f, 0.0f, 0.0f };
     GLuint depthTex;
+
+    GLint maxSize;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+    std::cout << "Max texture size: " << maxSize << std::endl;
+    shadowMapWidth = maxSize;
+    shadowMapHeight = maxSize;
 
     glGenTextures(1, &depthTex);
     glBindTexture(GL_TEXTURE_2D, depthTex);
