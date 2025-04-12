@@ -22,6 +22,15 @@ using glm::mat4;
 
 #include <GLFW/glfw3.h>
 
+#include <irrKlang/irrKlang.h>
+using namespace irrklang;
+
+//Sound Engine
+ISoundEngine* engine;
+
+//Sounds
+ISound* footstepSound = nullptr;
+
 //For working out delta time
 float lastFrameTime = 0.0f;
 
@@ -68,6 +77,8 @@ float brightness = 0.0f;
 bool negative = true;
 
 //For blastdoor control
+bool doorOpening = false;
+bool doorClosing = false;
 float negDoorHeight = -0.5f;
 float posDoorHeight = -0.5f;
 
@@ -75,18 +86,18 @@ float posDoorHeight = -0.5f;
 int shipNumber = 0;
 vec3 shipPosition = vec3(0.0f, 0.0f, 0.0f);
 float shipScale = 0.5f;
-float shipSpeed = 10.0f;
+float shipSpeed = 15.0f;
 
 vec3 shipStartPositions[] = {
-    vec3(-10.0f, -10.0f, 0.0f),
-    vec3(-10.0f, -10.0f, -10.0f),
-    vec3(-10.0f, -10.0f, 10.0f)
+    vec3(-10.0f, -20.0f, 0.0f),
+    vec3(-10.0f, -15.0f, -15.0f),
+    vec3(-10.0f, -15.0f, 15.0f)
 };
 
 vec3 shipEndPositions[] = {
-    vec3(-10.0f, 10.0f, 0.0f),
-    vec3(-10.0f, 10.0f, 10.0f),
-    vec3(-10.0f, 10.0f, -10.0f)
+    vec3(-10.0f, 15.0f, 0.0f),
+    vec3(-10.0f, 10.0f, 15.0f),
+    vec3(-10.0f, 10.0f, -15.0f)
 };
 
 //Collisons
@@ -211,6 +222,16 @@ void SceneBasic_Uniform::initScene()
 
     windowWidth = mode->width;
     windowHeight = mode->height;
+
+    //Sound Setup
+    engine = createIrrKlangDevice();
+
+    if (!engine) {
+        std::cout << "Failed to initialise sound engine\n" << std::endl;
+    }
+    else {
+        footstepSound = engine->play2D("media/sounds/footsteps.wav", true, true, true);
+    }
 
     //Skybox
     GLuint cubeTex = Texture::loadCubeMap("media/skybox/space");
@@ -350,6 +371,10 @@ void SceneBasic_Uniform::update(float t)
     }
 
     if (currentCorridor == 0) {
+        if (!footstepSound->getIsPaused()) {
+            footstepSound->setIsPaused(true);
+        }
+
         glfwSetCursorPosCallback(window, nullptr);
 
         whiteness += deltaTime / 2.5;
@@ -402,21 +427,84 @@ void SceneBasic_Uniform::update(float t)
     vec3 forwardDir = normalize(vec3(cameraFront.x, 0.0f, cameraFront.z));
     vec3 rightDir = normalize(cross(forwardDir, cameraUp));
 
+    bool isMoving = false;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
+        isMoving = true;
+        if (footstepSound->getIsPaused()) {
+            footstepSound->setIsPaused(false);
+        }
+        float volume = footstepSound->getVolume();
+        if (volume < 1.0f) {
+            volume += deltaTime * 2.5f;
+            if (volume > 1.0f) {
+                volume = 1.0f;
+            }
+            footstepSound->setVolume(volume);
+        }
         cameraPosition += movementSpeed * forwardDir;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
+        isMoving = true;
+        if (footstepSound->getIsPaused()) {
+            footstepSound->setIsPaused(false);
+        }
+        float volume = footstepSound->getVolume();
+        if (volume < 1.0f) {
+            volume += deltaTime * 2.5f;
+            if (volume > 1.0f) {
+                volume = 1.0f;
+            }
+            footstepSound->setVolume(volume);
+        }
         cameraPosition -= movementSpeed * forwardDir;
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
+        isMoving = true;
+        if (footstepSound->getIsPaused()) {
+            footstepSound->setIsPaused(false);
+        }
+        float volume = footstepSound->getVolume();
+        if (volume < 1.0f) {
+            volume += deltaTime * 2.5f;
+            if (volume > 1.0f) {
+                volume = 1.0f;
+            }
+            footstepSound->setVolume(volume);
+        }
         cameraPosition -= rightDir * movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
+        isMoving = true;
+        if (footstepSound->getIsPaused()) {
+            footstepSound->setIsPaused(false);
+        }
+        float volume = footstepSound->getVolume();
+        if (volume < 1.0f) {
+            volume += deltaTime * 2.5f;
+            if (volume > 1.0f) {
+                volume = 1.0f;
+            }
+            footstepSound->setVolume(volume);
+        }
         cameraPosition += rightDir * movementSpeed;
+    }
+
+    if (!isMoving && !footstepSound->getIsPaused()) {
+        float volume = footstepSound->getVolume();
+        if (volume > 0.0f) {
+            volume -= deltaTime * 2.5f;
+            if (volume < 0.0f) {
+                volume = 0.0f;
+            }
+            footstepSound->setVolume(volume);
+        }
+        else {
+            footstepSound->setIsPaused(true);
+        }
     }
 
     //Fix Height
@@ -511,8 +599,13 @@ void SceneBasic_Uniform::update(float t)
 
     //Blastdoor Updates
     float doorSpeed = 4.0f;
+    bool alreadyOpening = doorOpening;
+    bool alreadyClosing = doorClosing;
 
     if (cameraPosition.z >= 6.0f) {
+        doorOpening = true;
+        doorClosing = false;
+
         posDoorHeight += doorSpeed * deltaTime;
 
         if (posDoorHeight > 2.51f) {
@@ -520,6 +613,9 @@ void SceneBasic_Uniform::update(float t)
         }
     }
     else {
+        doorOpening = false;
+        doorClosing = true;
+
         posDoorHeight -= doorSpeed * deltaTime;
 
         if (posDoorHeight < -0.5f) {
@@ -527,7 +623,10 @@ void SceneBasic_Uniform::update(float t)
         }
     }
 
-    if (cameraPosition.z <= -6.0f) {
+    if (!(cameraPosition.z >= 6.0f) && cameraPosition.z <= -6.0f) {
+        doorOpening = true;
+        doorClosing = false;
+
         if (corridorVariant == 9) {
             negDoorHeight += (doorSpeed / 2) * deltaTime;
         }
@@ -539,7 +638,10 @@ void SceneBasic_Uniform::update(float t)
             negDoorHeight = 2.51f;
         }
     }
-    else {
+    else if (!(cameraPosition.z >= 6.0f)) {
+        doorOpening = false;
+        doorClosing = true;
+
         if (corridorVariant == 9) {
             negDoorHeight -= (doorSpeed / 2) * deltaTime;
         }
@@ -552,6 +654,14 @@ void SceneBasic_Uniform::update(float t)
         }
     }
 
+    if (!alreadyOpening && doorOpening) {
+        engine->play2D("media/sounds/doorOpen.wav");
+    }
+
+    if (!alreadyClosing && doorClosing) {
+        engine->play2D("media/sounds/doorClose.wav");
+    }
+
     //Spaceship Updates
     if (length(shipPosition - shipEndPositions[shipNumber]) < 0.1) {
         if (shipNumber == 2) {
@@ -561,6 +671,12 @@ void SceneBasic_Uniform::update(float t)
             shipNumber++;
         }
         shipPosition = shipStartPositions[shipNumber];
+        ISound* swoosh = engine->play2D("media/sounds/swoosh1.wav", false, false, true);
+        if (swoosh)
+        {
+            swoosh->setVolume(0.25f);
+            swoosh->drop();
+        }
     }
 
     vec3 target = shipEndPositions[shipNumber];
@@ -580,6 +696,7 @@ void SceneBasic_Uniform::update(float t)
             if (brightness < 0.0f) {
                 brightness = 0.0f;
                 negative = false;
+                engine->play2D("media/sounds/alarm.wav");
             }
         }
         else {
