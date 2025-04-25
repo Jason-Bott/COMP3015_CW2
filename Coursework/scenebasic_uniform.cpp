@@ -100,10 +100,6 @@ vec3 shipEndPositions[] = {
     vec3(-10.0f, 10.0f, -15.0f)
 };
 
-//Collisons
-bool collide = true;
-bool kPressed = false;
-
 float windowWallPosition = -3;
 bool windowNegative = false;
 
@@ -423,7 +419,7 @@ void SceneBasic_Uniform::update(float t)
     vec3 positionBefore = cameraPosition;
 
     //Movement
-    const float movementSpeed = 5.0f * deltaTime;
+    const float movementSpeed = 3.0f * deltaTime;
     vec3 forwardDir = normalize(vec3(cameraFront.x, 0.0f, cameraFront.z));
     vec3 rightDir = normalize(cross(forwardDir, cameraUp));
 
@@ -513,45 +509,31 @@ void SceneBasic_Uniform::update(float t)
     float x = cameraPosition.x;
     float z = cameraPosition.z;
 
-    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS && !kPressed)
-    {
-        collide = !collide;
-        kPressed = true;
+    //Wall Collision Check
+    if (x < -1.5f) {
+        cameraPosition.x = -1.5f;
+    }
+    else if (x > 1.5f) {
+        cameraPosition.x = 1.5f;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE)
-    {
-        kPressed = false;
+    if (z < -16.8f) {
+        cameraPosition.z = -16.8f;
+    }
+    else if (z > 16.8f) {
+        cameraPosition.z = 16.8f;
     }
 
-    if (collide)
+    //Doorframe Collision Check
+    if (((z > 8.75f && z < 11.25f) || (z < -8.75f && z > -11.25f)))
     {
-        //Wall Collision Check
-        if (x < -1.5f) {
-            cameraPosition.x = -1.5f;
-        }
-        else if (x > 1.5f) {
-            cameraPosition.x = 1.5f;
-        }
-
-        if (z < -16.8f) {
-            cameraPosition.z = -16.8f;
-        }
-        else if (z > 16.8f) {
-            cameraPosition.z = 16.8f;
-        }
-
-        //Doorframe Collision Check
-        if (((z > 8.75f && z < 11.25f) || (z < -8.75f && z > -11.25f)))
+        if (!(positionBefore.x < 0.5f && positionBefore.x > -0.5f))
         {
-            if (!(positionBefore.x < 0.5f && positionBefore.x > -0.5f))
-            {
-                cameraPosition.z = positionBefore.z;
-            }
-            else if (!(cameraPosition.x < 0.5f && cameraPosition.x > -0.5f))
-            {
-                cameraPosition.x = positionBefore.x;
-            }
+            cameraPosition.z = positionBefore.z;
+        }
+        else if (!(cameraPosition.x < 0.5f && cameraPosition.x > -0.5f))
+        {
+            cameraPosition.x = positionBefore.x;
         }
     }
 
@@ -683,8 +665,6 @@ void SceneBasic_Uniform::update(float t)
     vec3 direction = glm::normalize(target - shipPosition);
     shipPosition += direction * shipSpeed * deltaTime; 
 
-    //std::cout << cameraPosition.x << ", " << cameraPosition.z << std::endl;
-    //std::cout << pitch << ", " << yaw << std::endl;
     //Update View
     view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
 
@@ -783,7 +763,7 @@ void SceneBasic_Uniform::render()
             drawDigit(digitTextures[ones], 0.7f, -0.5f, 0.1f, 0.2f);
         }
 
-        //Main Menu Section
+        //Menu Section
         glActiveTexture(GL_TEXTURE5);
         if (timeInMenu < 2.0f) {
             glBindTexture(GL_TEXTURE_2D, congratsMenu);

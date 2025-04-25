@@ -82,9 +82,6 @@ subroutine uniform RenderPassType RenderPass;
 
 subroutine(RenderPassType)
 void shadeWithShadow() {
-    //vec3 ambient = lights[0].Intensity * Material.Ka;
-    //vec3 diffAndSpec = lights[0].Intensity * blinnPhong(0, Position, normalize(Normal));
-
     float sum = 0;
     float shadow = 1.0;
 
@@ -95,10 +92,6 @@ void shadeWithShadow() {
         sum += textureProjOffset(ShadowMap, ShadowCoord, ivec2(1, -1));
         shadow = sum * 0.25;
     }
-
-    //FragColor = vec4(diffAndSpec * shadow + ambient, 1.0);
-    //FragColor += lights[1].Intensity * vec4(blinnPhong(1, Position, normalize(Normal)), 1.0);
-
     
     FragColor = vec4(microfacetModel(0, Position, normalize(Normal)) * shadow, 1.0);
     for(int i = 1; i < 5; i++) {
@@ -119,18 +112,3 @@ void recordDepth() {
 void main() {
     RenderPass();
 }
-
-/*vec3 blinnPhong(int light, vec3 position, vec3 n) {
-    vec3 diffuse = vec3(0), spec = vec3(0);
-    vec3 texColor = texture(TexColor, TexCoord).rgb;
-    vec3 ambient = lights[light].La * texColor;
-    vec3 s = normalize(vec3(lights[light].Position.xyz) - position);
-    float sDotN = max(dot(s, n), 0.0);
-    diffuse = texColor * sDotN;
-    if(sDotN > 0.0) {
-        vec3 v = normalize(-position.xyz);
-        vec3 h = normalize(v + s);
-        spec = Material.Ks * pow(max(dot(h, n), 0.0), Material.Shininess);
-    }
-    return ambient + (diffuse + spec) * lights[light].L;
-}*/

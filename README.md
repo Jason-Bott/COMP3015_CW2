@@ -17,6 +17,8 @@ All assets and dependencies needed should be in the folder with the executable.
 
 ## Video Link
 
+https://youtu.be/wK8cWZkNcI4
+
 ## Game Mechanics
 
 ### Player Movement

@@ -47,11 +47,6 @@ const vec2 texCoords[] = vec2[](
 );
 
 vec3 randomInitialVelocity() {
-    //float theta = mix(0.0, PI / 8.0, texelFetch(RandomTex, 3 * gl_VertexID, 0).r);
-    //float phi = mix(0.0, 2.0 * PI, texelFetch(RandomTex, 3 * gl_VertexID + 1, 0).r);
-    //float velocity = mix(1.25, 1.5, texelFetch(RandomTex, 3 * gl_VertexID + 2, 0).r);
-    //v = vec3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi));
-
     float velocity = mix(0.1, 0.5, texelFetch(RandomTex, 2 * gl_VertexID, 0).r);
     return EmitterBasis * vec3(0, velocity, 0);
 }
@@ -62,19 +57,6 @@ vec3 randomInitialPosition() {
 }
 
 void update() {
-    /*
-    if(VertexAge < 0 || VertexAge > ParticleLifetime) {
-        Position = Emitter;
-        Velocity = randomInitialVelocity();
-        if(VertexAge < 0) Age = VertexAge + DeltaT;
-        else Age = (VertexAge - ParticleLifetime) + DeltaT;
-    } else {
-        Position = VertexPosition + VertexVelocity * DeltaT;
-        Velocity = VertexVelocity + Accel * DeltaT;
-        Age = VertexAge + DeltaT;
-    }
-    */
-
     Age = VertexAge + DeltaT;
     if(VertexAge < 0 || VertexAge > ParticleLifetime) {
         Position = randomInitialPosition();
